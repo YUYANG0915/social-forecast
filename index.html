@@ -177,10 +177,11 @@ function addMessage(t,s){const d=document.createElement('div');d.className=`msg 
 
 function updateProgress(){const p=Math.min((state.msgCount/30)*100,100);document.getElementById('progressFill').style.width=p+'%';document.getElementById('progressLabel').textContent=`${state.msgCount}/30`;document.getElementById('msgCounter').textContent=`对话进度: ${state.msgCount}/30`;if(state.msgCount===10)inferTraits();if(state.msgCount===20)inferTraits();if(state.msgCount>=30)showResults()}
 
-async function sendMessage(){const i=document.getElementById('chatInput');const t=i.value.trim();if(!t)return;i.value='';addMessage(t,'me');if(state.msgCount>=30)return;const ty=document.getElementById('typingIndicator');ty.style.display='block';let r;if(!state.demoMode&&state.currentPersona.isBot){r=await callLLM(t)}else{r=await demoReply(t)}ty.style.display='none';addMessage(r,'them')}
+async function sendMessage(){const i=document.getElementById('chatInput');const t=i.value.trim();if(!t)return;i.value='';addMessage(t,'me');if(state.msgCount>=30)return;const ty=document.getElementById('typingIndicator');ty.style.display='block';let r;if(!state.demoMode&&state.currentPersona.isBot){r=await callLLM(t)}else{r=await demoReply(t)}ty.style.display='none';addMessage(sanitizeReply(r),'them')}
 
+function sanitizeReply(t){return t.replace(/\*[^*]{1,50}\*/g,"").replace(/\s{2,}/g," ").trim()||t}
 async function callLLM(u){
-  const p=state.currentPersona;const sys=`${p.botPersonality}\n规则:保持角色,绝不承认AI,回复1-3句,自然展现性格,逐渐透露信息`;
+  const p=state.currentPersona;const sys=`${p.botPersonality}\n规则:\n- 保持角色,绝不承认AI\n- 回复1-3句,自然展现性格,逐渐透露信息\n- 绝对禁止使用星号动作描写(如*微笑*、*叹气*等RPG式描述),这不是角色扮演\n- 想表达情绪用颜文字(😊🤔😂等)或自然文字描述\n- 像真人发微信一样说话,不要小说叙述风格`;
   const msgs=state.messages.slice(-12).map(m=>({role:m.role,content:m.content}));
   try{let t=null;
     if(state.apiProvider==='anthropic'){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:sys,messages:msgs})});if(!r.ok)throw new Error(r.status);const d=await r.json();t=d.content?.[0]?.text}
