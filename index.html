@@ -731,7 +731,17 @@ body {
     <select id="apiProvider">
       <option value="anthropic">Anthropic (Claude)</option>
       <option value="openai">OpenAI (GPT)</option>
+      <option value="openrouter">OpenRouter (多模型)</option>
     </select>
+    <div id="modelNameGroup" style="display:none">
+      <label>模型名称（OpenRouter）</label>
+      <input type="text" id="modelName" placeholder="例如: anthropic/claude-sonnet-4, google/gemini-2.5-flash" />
+    </div>
+    <script>
+      document.getElementById('apiProvider').addEventListener('change', function() {
+        document.getElementById('modelNameGroup').style.display = this.value === 'openrouter' ? 'block' : 'none';
+      });
+    </script>
     <label>API Key</label>
     <input type="password" id="apiKey" placeholder="sk-..." />
     <button class="modal-btn" onclick="saveConfig()">保存并开始</button>
@@ -843,6 +853,7 @@ function saveConfig() {
   if (!key) { alert('请输入 API Key'); return; }
   state.apiProvider = provider;
   state.apiKey = key;
+  state.modelName = document.getElementById('modelName')?.value?.trim() || 'anthropic/claude-sonnet-4';
   state.demoMode = false;
   document.getElementById('configModal').classList.remove('active');
 }
@@ -979,25 +990,48 @@ async function callLLM(userMsg) {
   }));
 
   try {
+    let text = null;
+
     if (state.apiProvider === 'anthropic') {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': state.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
         body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300, system: systemPrompt, messages })
       });
+      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
       const data = await res.json();
-      return data.content?.[0]?.text || '...';
+      text = data.content?.[0]?.text;
+    } else if (state.apiProvider === 'openrouter') {
+      const model = state.modelName || 'anthropic/claude-sonnet-4';
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.apiKey}` },
+        body: JSON.stringify({ model, max_tokens: 300, messages: [{ role: 'system', content: systemPrompt }, ...messages] })
+      });
+      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
+      const data = await res.json();
+      text = data.choices?.[0]?.message?.content;
     } else {
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.apiKey}` },
         body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 300, messages: [{ role: 'system', content: systemPrompt }, ...messages] })
       });
+      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
       const data = await res.json();
-      return data.choices?.[0]?.message?.content || '...';
+      text = data.choices?.[0]?.message?.content;
     }
+
+    // If API returned empty/null, fallback to demo
+    if (!text || text.trim() === '') {
+      console.warn('API returned empty, falling back to demo');
+      return await demoReply(userMsg);
+    }
+    return text;
+
   } catch (e) {
     console.error('API Error:', e);
+    // Silently fallback to demo mode so user still gets a reply
     return await demoReply(userMsg);
   }
 }
@@ -1006,73 +1040,147 @@ async function callLLM(userMsg) {
 async function demoReply(userMsg) {
   await new Promise(r => setTimeout(r, 600 + Math.random() * 1200));
   const persona = state.currentPersona;
+  const msg = userMsg.toLowerCase();
 
-  const replyMap = {
-    1: [ // 林小雨 - 活泼
-      "哈哈，是吗！我也这么觉得呢 (≧▽≦)",
-      "嘿嘿，你好有趣呀~",
-      "诶诶诶！我最近也在想这个！",
-      "太棒了吧！你是怎么知道的呀",
-      "哈哈哈我笑死了，你太逗了",
-      "对对对！上次我还跟室友聊这个来着~",
-      "你有没有看过《葬送的芙莉莲》？超好看的！",
+  // Keyword-triggered replies (higher priority)
+  const keywordReplies = {
+    1: { // 林小雨
+      '你好|嗨|hi|hello|在吗': ['嗨嗨嗨！终于有人来找我聊天啦~', '你好呀！今天心情超好的 (≧▽≦)'],
+      '名字|叫什么|你是谁': ['我叫林小雨呀，大家都叫我小雨~你呢？', '小雨就是我啦！名字是我妈起的，说希望我像春雨一样温柔哈哈'],
+      '多大|年龄|几岁': ['我20啦！大二，时间过好快', '刚过完20岁生日不久~感觉自己还是个宝宝哈哈'],
+      '动漫|番|漫画': ['你也看动漫吗！！最近在追《葬送的芙莉莲》超好看的！', '啊啊啊遇到同好了吗？我最喜欢新海诚的电影！', '我墙上贴满了动漫海报哈哈，室友说我像住在二次元'],
+      '旅行|旅游|出去玩': ['超想去日本！秋叶原和镰仓都想去~', '上次去了长沙，茶颜悦色真的绝了！', '我的旅行愿望清单已经写满一整页了 ᕕ( ᐛ )ᕗ'],
+      '学习|考试|作业': ['别提了...下周还有考试呢😭', '学习的事明天再说吧哈哈哈（经典拖延症）', '其实我成绩还行啦，就是不太喜欢背书'],
+      '吃|美食|饭': ['我是奶茶星人！一天不喝浑身难受', '最近发现学校后门新开了一家螺蛳粉，超香！', '减肥？不存在的，快乐最重要~'],
+      '喜欢|爱好|兴趣': ['除了动漫我还喜欢拍照！手机里全是风景照', '我兴趣可多了，追番、旅行、拍照、吃好吃的~', '最近在学ukulele，不过只会弹小星星哈哈'],
+      '工作|上班': ['我还在上学啦~不过在想毕业以后做什么', '有在做一些兼职，帮人画一些小头像之类的'],
+      '开心|快乐|心情好': ['看到你开心我也开心呀~', '开心就对了！快乐是会传染的嘿嘿'],
+      '难过|伤心|不开心|累': ['抱抱你！有什么事可以跟我说呀~', '不开心的话就看一集动漫吧，保证治愈！'],
+    },
+    2: { // 张伟
+      '你好|嗨|hi|hello': ['你好，很高兴认识你。', '嗨，今天工作刚告一段落，来聊聊天。'],
+      '名字|叫什么|你是谁': ['我叫张伟，在一家互联网公司做产品经理。', '张伟，一个普通的产品人。名字虽然大众，但我觉得挺好。'],
+      '工作|产品|互联网|公司': ['最近在做一个AI相关的产品，挺有挑战性的。', '产品经理嘛，本质上就是在用户需求和技术可行性之间找平衡。', '互联网行业变化太快了，不持续学习就会被淘汰。'],
+      'ai|人工智能|chatgpt|大模型': ['我觉得AI不会取代人，但会用AI的人会取代不会的。', '最近在研究Agent的落地场景，比纯对话有意思多了。', '大模型的能力边界其实很清晰，关键是怎么设计好产品形态。'],
+      '科技|技术|编程|代码': ['我虽然是产品经理，但也会写点Python，够用就行。', '技术是手段，不是目的。关键是解决什么问题。', '推荐你看看《黑客与画家》，对思维方式很有启发。'],
+      '读书|书|推荐': ['最近在读《思考，快与慢》，关于认知偏差的，很有启发。', '项飙的《把自己作为方法》也不错，社会学视角看个体。', '我一般一个月读两本书，产品和认知科学方面的居多。'],
+      '喜欢|爱好|兴趣|周末': ['周末一般就是看科技新闻、打羽毛球，偶尔做做饭。', '我比较宅，但觉得保持运动很重要。', '说不上特别有趣的爱好，但我对很多事情都保持好奇心。'],
+      '多大|年龄': ['28了，工作快五年。', '快三十了，感觉时间过得越来越快。'],
+      '感情|女朋友|恋爱': ['目前单身，工作比较忙，也没太刻意去找。', '我觉得感情这种事强求不来，顺其自然比较好。'],
+      '建议|怎么看|你觉得': ['这个问题我觉得可以从两个维度来看...', '我的观点不一定对，但我倾向于先看数据再做判断。', '好问题。简单来说，我的逻辑是这样的...'],
+    },
+    3: { // 陈美琪
+      '你好|嗨|hi|hello': ['你好。今天窗外的光线很柔和，适合聊天。', '嗨...刚从画布前抬起头，眼睛还有点花。'],
+      '名字|叫什么|你是谁': ['我叫陈美琪，做自由插画师。名字是外婆起的，她说美琪是美丽又珍奇的意思。', '美琪。大部分时间都在画画，偶尔也写点东西。'],
+      '画画|插画|设计|作品': ['最近在画一组关于城市孤独的系列，用了很多灰蓝色调。', '画画对我来说像呼吸一样，不画就会觉得窒息。', '有时候一幅画会卡很久，但突然想通的那个瞬间特别美好。', '我的风格偏治愈系吧，喜欢画日常里那些被忽略的小细节。'],
+      '工作|自由职业|接单': ['自由职业听起来很美好，但其实焦虑是常态。', '最近在赶一个绘本的截止日期，灵感总是在deadline前才来。', '收入不太稳定，但至少在做自己喜欢的事。'],
+      '喜欢|爱好|兴趣': ['我喜欢在下雨天泡一杯茶，听窗外的雨声画画。', '除了画画，我还喜欢逛美术馆和读诗集。', '最近迷上了手冲咖啡，觉得萃取的过程很有仪式感。'],
+      '音乐|歌': ['你有没有那种突然被一首歌击中的感觉？上周听到坂本龙一的一首曲子，哭了好久。', '我画画的时候一般会听后摇或者ambient音乐。'],
+      '感情|恋爱|孤独': ['我一直觉得，真正的连接是彼此能看见对方的脆弱。', '孤独不一定是坏事，它让我和自己对话。', '上一段感情结束快一年了...还在慢慢修复吧。'],
+      '心情|感觉|最近': ['最近有点焦虑，项目压力大，但画画的时候会好一些。', '今天状态还行，画了一幅自己挺满意的小稿。', '秋天总让我有点感伤，不知道为什么。'],
+      '多大|年龄': ['25岁，毕业两年了。', '说起来已经独立生活两年了，时间像水彩一样晕开。'],
+      '建议|推荐': ['如果你对艺术感兴趣，推荐去看看Moleskin的城市速写项目。', '最近读了一本书叫《论美》，关于美学和存在的，很动人。'],
+    },
+    4: { // 王大力
+      '你好|嗨|hi|hello': ['嘿兄弟/姐妹！欢迎欢迎~', '哈哈你好！来聊天是吧？正好我刚练完，休息会~'],
+      '名字|叫什么': ['王大力！名副其实，力气确实大哈哈', '大力就好~我妈说生我的时候我特别有劲儿'],
+      '健身|运动|锻炼|肌肉|减肥': ['今天练了腿，走路都在抖！但感觉超爽', '健身真的会上瘾，你试过就知道了！', '减肥的话关键是管住嘴迈开腿，老话但真的有用', '推荐你试试力量训练，比纯有氧效果好太多了！'],
+      '吃|饮食|蛋白质': ['增肌期每天要吃够蛋白质，鸡胸肉我已经吃出创伤了哈哈', '其实健康饮食没那么痛苦，偶尔也要犒劳自己的！', '奶昔推荐乳清蛋白加香蕉，好喝又管饱'],
+      '工作|教练|职业': ['做健身教练三年了，最开心的是看到学员变化', '客户今天问我怎么一个月瘦20斤，我说那是减命不是减肥😂', '虽然收入不算顶尖，但每天做喜欢的事情挺幸福的'],
+      '喜欢|爱好|兴趣|周末': ['除了健身就是打篮球！周末经常约哥们儿打野球', '偶尔也看看书啦，不过确实看得少...', '生活嘛简单点就好，想太多累！'],
+      '多大|年龄': ['26！正是最能折腾的年纪', '26岁，体脂率12%，嘿嘿'],
+      '累|不开心|压力': ['来健身啊！一练什么烦恼都忘了', '兄弟有啥烦心事说出来，别自己扛着', '运动分泌多巴胺，是天然的快乐药💪'],
+    },
+    5: { // 李思涵
+      '你好|嗨|hi|hello': ['你好呀，很高兴在这里遇到你。', '嗨，我是思涵，来这个平台看看，也算是一种田野调查吧~'],
+      '名字|叫什么': ['李思涵，研二。名字寄托了父母希望我思想深邃的期望吧。', '思涵，学社会学的。有人说我名字很文静，性格确实也偏安静。'],
+      '学习|研究|社会学|论文': ['我在研究社交媒体对青年群体身份认同的影响，题目有点大。', '导师说我的选题太宏观了，但我觉得这正是它有趣的地方。', '社会学教会我最重要的一点是：质疑那些看似理所当然的事情。', '最近在做问卷调查，回收率真的让人头疼...'],
+      '社交|网络|互联网': ['你有没有注意到，人们在网上呈现的自己往往和现实不太一样？', '社交媒体其实在重新定义什么叫「亲密关系」。', '我觉得线上社交降低了连接的门槛，但也稀释了连接的深度。'],
+      '读书|书|推荐': ['最近在读项飙的《把自己作为方法》，非常推荐。', '如果对社会观察感兴趣，可以看看《乡土中国》，费孝通先生的经典。', '还有一本《单身社会》，讲现代人独居现象的，跟我研究课题相关。'],
+      '喜欢|爱好|兴趣|周末': ['我喜欢去咖啡馆写论文...虽然效率不一定高，但氛围很好。', '周末偶尔会去参加一些读书会，认识了一些有意思的朋友。', '纪录片也看得多，最近在看一个关于留守儿童的系列。'],
+      '多大|年龄': ['24岁，研二。感觉读研以后时间过得特别快。', '24了，有时候觉得自己成熟了很多，有时候又觉得还是个小孩。'],
+      '感情|恋爱|关系': ['我觉得理解一个人需要很长时间，但这个过程本身就很有价值。', '说真的，我觉得人与人之间的信任越来越难建立了。', '我对感情不太着急，可能是学社会学的通病，总想先分析再行动。'],
+      '焦虑|压力|累': ['焦虑是研究生的标配了哈哈，不过也在学着和它共处。', '压力大的时候我会去学校旁边的江边走走，吹吹风就好多了。'],
+    },
+  };
+
+  // Random/fallback replies
+  const fallbackReplies = {
+    1: [
+      "哈哈，是吗！我也这么觉得呢 (≧▽≦)", "嘿嘿，你好有趣呀~",
+      "诶诶诶！我最近也在想这个！", "太棒了吧！你是怎么知道的呀",
+      "哈哈哈我笑死了，你太逗了", "对对对！上次我还跟室友聊这个来着~",
       "好想去旅行啊...最近一直在看攻略 ᕕ( ᐛ )ᕗ",
       "其实我有时候也会焦虑诶，不过看看动漫就好了~",
-      "你平时都喜欢干什么呀？",
+      "你平时都喜欢干什么呀？", "哇塞，感觉你懂好多！",
+      "我室友肯定也会这么说哈哈", "你有养宠物吗？我好想养一只猫~",
+      "今天天气好好呀，适合出门玩！", "你说得对诶，我怎么没想到~",
+      "等一下让我想想...嗯嗯，有道理！",
     ],
-    2: [ // 张伟 - 理性
-      "嗯，这个角度挺有意思的，但我觉得还可以从另一面来看。",
-      "说到这个，最近有个很火的概念叫 Agent，你了解吗？",
-      "我在工作中经常遇到类似的问题，本质是优先级的取舍。",
-      "数据表明这个趋势还是比较明显的。",
-      "我一般会先列个框架，再逐步细化。职业病了哈哈。",
-      "这让我想到了一本书叫《思考，快与慢》，推荐你看看。",
-      "你说得对，不过换个角度来想，可能结论会不太一样。",
-      "周末一般就是看看科技新闻，偶尔打打羽毛球。",
-      "直觉是一回事，验证又是另一回事。",
-      "好问题。简单来说，我是这么理解的...",
+    2: [
+      "嗯，这个角度挺有意思的，不过我觉得还可以从另一面来看。",
+      "说到这个，本质上是个优先级问题。", "数据表明这个趋势还是比较明显的。",
+      "我一般会先列个框架，再逐步细化。", "直觉是一回事，验证又是另一回事。",
+      "你说得对，不过换个角度来想结论可能不太一样。", "周末一般就是看看科技新闻，偶尔打打羽毛球。",
+      "好问题。简单来说，我是这么理解的...", "这让我想到一个有趣的case...",
+      "从产品角度来看，核心还是用户价值。", "同意，这个逻辑是自洽的。",
+      "我之前也遇到过类似的情况，后来发现关键在于...",
+      "这个值得深入聊聊。", "有意思，继续说说？",
     ],
-    3: [ // 陈美琪 - 文艺
+    3: [
       "有时候我觉得画画就像在和另一个自己对话。",
       "今天的天空有一种薄荷色的透明感，你注意到了吗？",
-      "最近在画一组关于城市孤独的插画，有点被情绪裹挟。",
-      "我喜欢在深夜工作，安静的时候灵感比较容易来。",
       "你有没有那种突然被一首歌击中的感觉？",
       "嗯...我是那种会被一片落叶感动的人。",
-      "截止日期快到了，但灵感好像躲在某个角落不肯出来。",
       "色彩是有温度的，暖色让人安心，冷色让人沉思。",
       "谢谢你愿意听我说这些，好久没人认真聊这种话题了。",
-      "我一直觉得，真正的连接是彼此能看见对方的脆弱。",
+      "我一直觉得，每个人心里都有一幅没画完的画。",
+      "窗外开始下雨了...我喜欢雨天的声音。",
+      "你说的让我想画一幅画来回应...", "嗯，我需要消化一下你说的。",
+      "有些感受用语言说不清楚，可能画出来会更准确。",
+      "你有没有觉得，深夜是最适合说真心话的时候？",
     ],
-    4: [ // 王大力 (标记真人，demo中模拟)
-      "哈哈兄弟，今天练了腿，走路都在抖！",
-      "健康饮食真的很重要，不过偶尔也得放纵一下嘛。",
-      "你有运动的习惯吗？强烈建议试试！",
-      "其实健身最难的不是训练，是坚持。",
-      "人生就像举铁，扛过了就变强了💪",
-      "推荐你试试晨跑，精神状态完全不一样。",
-      "客户今天问我怎么减肥，我说管住嘴迈开腿，经典但有用。",
-      "生活嘛，简单点就好，想太多累。",
-      "对了，最近天气不错，适合户外运动！",
-      "跟你聊天挺开心的，感觉很real。",
+    4: [
+      "哈哈没错！就是这个道理！", "你也太有想法了吧，佩服佩服~",
+      "人生就像举铁，扛过了就变强了💪", "推荐你试试晨跑，精神状态完全不一样！",
+      "对了，最近天气不错，适合户外运动！", "跟你聊天挺开心的，感觉很real~",
+      "生活嘛，别想太多，干就完了！", "兄弟说得在理！",
+      "我也这么觉得！英雄所见略同", "有空一起打球呀！",
+      "这个我还真不太懂哈哈，但我觉得你说的对",
+      "简单直接最好！搞那么复杂干啥~",
     ],
-    5: [ // 李思涵 (标记真人，demo中模拟)
-      "我最近在研究社交媒体对青年群体认同的影响，挺有趣的。",
+    5: [
       "你觉得线上社交和线下社交有本质区别吗？",
-      "社会学的视角让我看待事情的方式发生了很大变化。",
-      "导师说我的选题太大了，但我觉得这恰恰是它有意义的地方。",
-      "焦虑是研究生的通病了哈哈，不过也在学着和它共处。",
+      "社会学的视角让我看事情的方式变了很多。",
       "你有没有注意到，人们在网上表达的自己往往和现实不太一样？",
       "我觉得理解一个人需要很长时间，但值得。",
-      "最近在读项飙的书，非常推荐。",
       "数据收集的过程很枯燥，但分析的时候特别有成就感。",
       "说真的，我觉得人与人之间的信任越来越难建立了。",
+      "嗯，这个观点蛮有意思的，让我从研究角度想想...",
+      "你的说法让我想到一个社会学概念...",
+      "我导师也经常这么说，不过我保留不同意见。",
+      "有时候日常的观察反而比理论更有说服力。",
+      "这个话题我正好在论文里讨论过，确实很复杂。",
+      "跟你聊天感觉很舒服，你是个好的倾听者。",
     ],
   };
 
-  const replies = replyMap[persona.id] || replyMap[1];
-  const idx = Math.min(state.msgCount - 1, replies.length - 1);
-  return replies[Math.max(0, idx)];
+  // Try keyword matching first
+  const personaKeywords = keywordReplies[persona.id];
+  if (personaKeywords) {
+    for (const [pattern, replies] of Object.entries(personaKeywords)) {
+      const regex = new RegExp(pattern);
+      if (regex.test(msg)) {
+        return replies[Math.floor(Math.random() * replies.length)];
+      }
+    }
+  }
+
+  // Fallback to random replies
+  const pool = fallbackReplies[persona.id] || fallbackReplies[1];
+  // Use a combination of msgCount and randomness to avoid too much repetition
+  const idx = (state.msgCount + Math.floor(Math.random() * 3)) % pool.length;
+  return pool[idx];
 }
 
 // ===== TRAIT INFERENCE =====
@@ -1091,6 +1199,15 @@ async function inferTraits() {
         });
         const data = await res.json();
         result = JSON.parse(data.content[0].text.replace(/```json|```/g, '').trim());
+      } else if (state.apiProvider === 'openrouter') {
+        const model = state.modelName || 'anthropic/claude-sonnet-4';
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.apiKey}` },
+          body: JSON.stringify({ model, max_tokens: 500, messages: [{ role: 'user', content: prompt }] })
+        });
+        const data = await res.json();
+        result = JSON.parse(data.choices[0].message.content.replace(/```json|```/g, '').trim());
       } else {
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
