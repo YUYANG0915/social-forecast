@@ -6,1349 +6,288 @@
 <title>SocialScope — 社交预测系统</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg-deep: #0a0b0f;
-  --bg-card: #12131a;
-  --bg-hover: #1a1b25;
-  --accent: #00e5a0;
-  --accent-dim: #00e5a033;
-  --accent-glow: #00e5a066;
-  --warning: #ff6b6b;
-  --warning-dim: #ff6b6b22;
-  --text-primary: #e8e8ec;
-  --text-secondary: #7a7b8e;
-  --text-dim: #44455a;
-  --border: #1e1f2e;
-  --gradient-1: linear-gradient(135deg, #00e5a0 0%, #00b4d8 100%);
-  --gradient-2: linear-gradient(135deg, #7b2ff7 0%, #00e5a0 100%);
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  background: var(--bg-deep);
-  color: var(--text-primary);
-  font-family: 'Noto Sans SC', sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* ===== NAVBAR ===== */
-.navbar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 100;
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(10,11,15,0.85);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-}
-
-.logo {
-  font-family: 'Space Mono', monospace;
-  font-size: 20px;
-  font-weight: 700;
-  background: var(--gradient-1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.5px;
-}
-
-.logo span {
-  -webkit-text-fill-color: var(--text-dim);
-  font-weight: 400;
-  font-size: 12px;
-  margin-left: 8px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.nav-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--accent-glow); }
-  50% { opacity: 0.7; box-shadow: 0 0 0 6px transparent; }
-}
-
-/* ===== SCREENS ===== */
-.screen {
-  display: none;
-  min-height: 100vh;
-  padding-top: 72px;
-}
-
-.screen.active { display: block; }
-
-/* ===== HOME SCREEN ===== */
-.home-screen {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 72px 24px 40px;
-  text-align: center;
-}
-
-.home-screen.active { display: flex; }
-
-.hero-title {
-  font-family: 'Space Mono', monospace;
-  font-size: clamp(36px, 6vw, 64px);
-  font-weight: 700;
-  line-height: 1.1;
-  margin-bottom: 16px;
-  background: var(--gradient-2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.hero-sub {
-  font-size: 16px;
-  color: var(--text-secondary);
-  max-width: 500px;
-  line-height: 1.7;
-  margin-bottom: 48px;
-}
-
-.persona-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  max-width: 900px;
-  width: 100%;
-  margin-bottom: 24px;
-}
-
-.persona-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.persona-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--gradient-1);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.persona-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 32px var(--accent-dim);
-}
-
-.persona-card:hover::before { opacity: 1; }
-
-.persona-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  margin: 0 auto 12px;
-  background: var(--bg-hover);
-  border: 2px solid var(--border);
-}
-
-.persona-name {
-  font-weight: 500;
-  font-size: 16px;
-  margin-bottom: 4px;
-}
-
-.persona-hint {
-  font-size: 12px;
-  color: var(--text-dim);
-  font-family: 'Space Mono', monospace;
-}
-
-.persona-tag {
-  display: inline-block;
-  margin-top: 8px;
-  padding: 2px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-family: 'Space Mono', monospace;
-}
-
-.home-note {
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-top: 8px;
-  font-style: italic;
-}
-
-/* ===== CHAT SCREEN ===== */
-.chat-screen {
-  display: none;
-  min-height: 100vh;
-  padding-top: 72px;
-}
-
-.chat-screen.active { display: grid; grid-template-columns: 1fr 320px; }
-
-@media (max-width: 900px) {
-  .chat-screen.active { grid-template-columns: 1fr; }
-  .sidebar { display: none !important; }
-}
-
-.chat-main {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 72px);
-  border-right: 1px solid var(--border);
-}
-
-.chat-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.chat-header-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--bg-hover);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.chat-header-info h3 { font-size: 15px; font-weight: 500; }
-.chat-header-info p { font-size: 12px; color: var(--text-secondary); }
-
-.chat-back {
-  margin-left: auto;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  padding: 6px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s;
-}
-
-.chat-back:hover { border-color: var(--accent); color: var(--accent); }
-
-.messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.messages::-webkit-scrollbar { width: 4px; }
-.messages::-webkit-scrollbar-track { background: transparent; }
-.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-.msg {
-  max-width: 70%;
-  padding: 12px 16px;
-  border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.6;
-  animation: msgIn 0.3s ease;
-}
-
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.msg.them {
-  align-self: flex-start;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-bottom-left-radius: 4px;
-}
-
-.msg.me {
-  align-self: flex-end;
-  background: var(--accent);
-  color: #0a0b0f;
-  font-weight: 500;
-  border-bottom-right-radius: 4px;
-}
-
-.msg-counter {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-dim);
-  font-family: 'Space Mono', monospace;
-  padding: 4px 0;
-}
-
-.typing-indicator {
-  align-self: flex-start;
-  padding: 12px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  border-bottom-left-radius: 4px;
-  display: none;
-}
-
-.typing-indicator span {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-dim);
-  margin: 0 2px;
-  animation: typingBounce 1.4s infinite;
-}
-
-.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typingBounce {
-  0%, 60%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-6px); }
-}
-
-.chat-input-area {
-  padding: 16px 24px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 12px;
-}
-
-.chat-input {
-  flex: 1;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 16px;
-  color: var(--text-primary);
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.chat-input:focus { border-color: var(--accent); }
-.chat-input::placeholder { color: var(--text-dim); }
-
-.send-btn {
-  background: var(--gradient-1);
-  border: none;
-  border-radius: 12px;
-  padding: 0 20px;
-  cursor: pointer;
-  font-size: 18px;
-  transition: transform 0.2s, opacity 0.2s;
-}
-
-.send-btn:hover { transform: scale(1.05); }
-.send-btn:active { transform: scale(0.95); }
-
-/* ===== SIDEBAR ===== */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 72px);
-  overflow-y: auto;
-  padding: 20px;
-  gap: 16px;
-}
-
-.sidebar-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.sidebar-card h4 {
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--text-dim);
-  margin-bottom: 12px;
-}
-
-.progress-bar {
-  height: 4px;
-  background: var(--bg-hover);
-  border-radius: 2px;
-  margin-bottom: 8px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--gradient-1);
-  border-radius: 2px;
-  transition: width 0.5s ease;
-  width: 0%;
-}
-
-.progress-label {
-  font-size: 11px;
-  color: var(--text-secondary);
-  font-family: 'Space Mono', monospace;
-}
-
-.trait-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 0;
-  font-size: 13px;
-}
-
-.trait-label { color: var(--text-secondary); }
-
-.trait-value {
-  font-family: 'Space Mono', monospace;
-  color: var(--accent);
-  font-size: 12px;
-}
-
-.trait-bar {
-  flex: 1;
-  margin: 0 12px;
-  height: 3px;
-  background: var(--bg-hover);
-  border-radius: 2px;
-  position: relative;
-}
-
-.trait-bar-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: var(--accent);
-  border-radius: 2px;
-  transition: width 0.8s ease;
-}
-
-.emotion-tag {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  margin: 2px;
-  background: var(--accent-dim);
-  color: var(--accent);
-  transition: all 0.3s;
-}
-
-.emotion-tag.negative {
-  background: var(--warning-dim);
-  color: var(--warning);
-}
-
-.risk-alert {
-  background: var(--warning-dim);
-  border: 1px solid var(--warning);
-  border-radius: 12px;
-  padding: 16px;
-  display: none;
-}
-
-.risk-alert h4 {
-  color: var(--warning) !important;
-}
-
-.risk-alert p {
-  font-size: 13px;
-  color: var(--warning);
-  line-height: 1.5;
-}
-
-/* ===== API CONFIG MODAL ===== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
-  z-index: 200;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-overlay.active { display: flex; }
-
-.modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 32px;
-  width: 90%;
-  max-width: 440px;
-}
-
-.modal h2 {
-  font-family: 'Space Mono', monospace;
-  font-size: 18px;
-  margin-bottom: 8px;
-  background: var(--gradient-1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.modal p {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 20px;
-  line-height: 1.6;
-}
-
-.modal label {
-  display: block;
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-bottom: 6px;
-  font-family: 'Space Mono', monospace;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.modal select, .modal input[type="password"], .modal input[type="text"] {
-  width: 100%;
-  padding: 10px 14px;
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 14px;
-  font-family: inherit;
-  margin-bottom: 16px;
-  outline: none;
-}
-
-.modal select:focus, .modal input:focus { border-color: var(--accent); }
-
-.modal-btn {
-  width: 100%;
-  padding: 12px;
-  background: var(--gradient-1);
-  border: none;
-  border-radius: 10px;
-  color: #0a0b0f;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.modal-btn:hover { transform: scale(1.02); }
-
-.modal-skip {
-  display: block;
-  text-align: center;
-  margin-top: 12px;
-  color: var(--text-dim);
-  font-size: 12px;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-/* ===== RESULT SCREEN ===== */
-.result-screen {
-  display: none;
-  padding: 72px 24px 40px;
-}
-
-.result-screen.active {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.result-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.result-header h2 {
-  font-family: 'Space Mono', monospace;
-  font-size: 28px;
-  background: var(--gradient-2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 8px;
-}
-
-.result-header p { color: var(--text-secondary); font-size: 14px; }
-
-.result-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  max-width: 900px;
-  width: 100%;
-  margin-bottom: 32px;
-}
-
-.result-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
-}
-
-.result-card h3 {
-  font-family: 'Space Mono', monospace;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--text-dim);
-  margin-bottom: 16px;
-}
-
-.result-big {
-  font-size: 36px;
-  font-weight: 700;
-  font-family: 'Space Mono', monospace;
-  background: var(--gradient-1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.result-desc {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-top: 8px;
-  line-height: 1.6;
-}
-
-.reveal-badge {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-family: 'Space Mono', monospace;
-  margin-top: 12px;
-}
-
-.reveal-badge.bot {
-  background: #7b2ff722;
-  color: #b57bff;
-  border: 1px solid #7b2ff744;
-}
-
-.reveal-badge.human {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border: 1px solid var(--accent-glow);
-}
-
-.restart-btn {
-  padding: 14px 40px;
-  background: var(--gradient-1);
-  border: none;
-  border-radius: 12px;
-  color: #0a0b0f;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  transition: transform 0.2s;
-  margin-top: 20px;
-}
-
-.restart-btn:hover { transform: scale(1.03); }
-
-/* Decorative background */
-.bg-glow {
-  position: fixed;
-  width: 400px;
-  height: 400px;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.08;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.bg-glow-1 { top: -100px; right: -100px; background: var(--accent); }
-.bg-glow-2 { bottom: -100px; left: -100px; background: #7b2ff7; }
+:root{--bg-deep:#0a0b0f;--bg-card:#12131a;--bg-hover:#1a1b25;--accent:#00e5a0;--accent-dim:#00e5a033;--accent-glow:#00e5a066;--warning:#ff6b6b;--warning-dim:#ff6b6b22;--text-primary:#e8e8ec;--text-secondary:#7a7b8e;--text-dim:#44455a;--border:#1e1f2e;--gradient-1:linear-gradient(135deg,#00e5a0 0%,#00b4d8 100%);--gradient-2:linear-gradient(135deg,#7b2ff7 0%,#00e5a0 100%)}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg-deep);color:var(--text-primary);font-family:'Noto Sans SC',sans-serif;min-height:100vh;overflow-x:hidden}
+.navbar{position:fixed;top:0;width:100%;z-index:100;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,11,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;background:var(--gradient-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.logo span{-webkit-text-fill-color:var(--text-dim);font-weight:400;font-size:12px;margin-left:8px;letter-spacing:2px;text-transform:uppercase}
+.nav-status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary)}.status-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.7;box-shadow:0 0 0 6px transparent}}
+.screen{display:none;min-height:100vh;padding-top:72px}.screen.active{display:block}
+.home-screen{display:none;flex-direction:column;align-items:center;min-height:100vh;padding:72px 24px 40px;text-align:center}.home-screen.active{display:flex}
+.hero-title{font-family:'Space Mono',monospace;font-size:clamp(32px,5vw,56px);font-weight:700;line-height:1.1;margin-bottom:12px;background:var(--gradient-2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:15px;color:var(--text-secondary);max-width:560px;line-height:1.7;margin-bottom:24px}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;max-width:900px}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit}.filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;max-width:1100px;width:100%;margin-bottom:16px}
+.persona-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.persona-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradient-1);opacity:0;transition:opacity .3s}.persona-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 6px 24px var(--accent-dim)}.persona-card:hover::before{opacity:1}.persona-card.hidden{display:none}
+.persona-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 8px;background:var(--bg-hover);border:2px solid var(--border)}
+.persona-name{font-weight:500;font-size:14px;margin-bottom:2px}.persona-hint{font-size:11px;color:var(--text-dim);margin-bottom:6px}
+.persona-tags{display:flex;flex-wrap:wrap;gap:3px;justify-content:center}.persona-tag{padding:2px 7px;border-radius:10px;font-size:10px;background:var(--accent-dim);color:var(--accent);font-family:'Space Mono',monospace}.persona-tag.age{background:#7b2ff722;color:#b57bff}.persona-tag.loc{background:#00b4d822;color:#00b4d8}
+.home-note{font-size:12px;color:var(--text-dim);margin-top:8px;font-style:italic}
+.chat-screen{display:none;min-height:100vh;padding-top:72px}.chat-screen.active{display:grid;grid-template-columns:1fr 330px}
+@media(max-width:960px){.chat-screen.active{grid-template-columns:1fr}.sidebar{display:none!important}}
+.chat-main{display:flex;flex-direction:column;height:calc(100vh - 72px);border-right:1px solid var(--border)}
+.chat-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.chat-header-avatar{width:40px;height:40px;border-radius:50%;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-size:18px}
+.chat-header-info h3{font-size:15px;font-weight:500}.chat-header-info p{font-size:12px;color:var(--text-secondary)}
+.chat-back{margin-left:auto;background:none;border:1px solid var(--border);color:var(--text-secondary);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .2s}.chat-back:hover{border-color:var(--accent);color:var(--accent)}
+.messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}.messages::-webkit-scrollbar{width:4px}.messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.msg{max-width:72%;padding:11px 15px;border-radius:16px;font-size:14px;line-height:1.6;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.them{align-self:flex-start;background:var(--bg-card);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.me{align-self:flex-end;background:var(--accent);color:#0a0b0f;font-weight:500;border-bottom-right-radius:4px}
+.msg-counter{text-align:center;font-size:11px;color:var(--text-dim);font-family:'Space Mono',monospace;padding:4px 0}
+.typing-indicator{align-self:flex-start;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;border-bottom-left-radius:4px;display:none}
+.typing-indicator span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text-dim);margin:0 2px;animation:tb 1.4s infinite}.typing-indicator span:nth-child(2){animation-delay:.2s}.typing-indicator span:nth-child(3){animation-delay:.4s}
+@keyframes tb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.chat-input-area{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px}
+.chat-input{flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:11px 15px;color:var(--text-primary);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s}.chat-input:focus{border-color:var(--accent)}.chat-input::placeholder{color:var(--text-dim)}
+.send-btn{background:var(--gradient-1);border:none;border-radius:12px;padding:0 20px;cursor:pointer;font-size:18px;transition:transform .2s}.send-btn:hover{transform:scale(1.05)}
+.sidebar{display:flex;flex-direction:column;height:calc(100vh - 72px);overflow-y:auto;padding:14px;gap:10px}.sidebar::-webkit-scrollbar{width:4px}.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sidebar-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px}
+.sidebar-card h4{font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:8px}
+.progress-bar{height:4px;background:var(--bg-hover);border-radius:2px;margin-bottom:6px;overflow:hidden}
+.progress-fill{height:100%;background:var(--gradient-1);border-radius:2px;transition:width .5s;width:0%}
+.progress-label{font-size:11px;color:var(--text-secondary);font-family:'Space Mono',monospace}
+.trait-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12px}
+.trait-label{color:var(--text-secondary);min-width:55px}.trait-value{font-family:'Space Mono',monospace;color:var(--accent);font-size:11px;min-width:36px;text-align:right}
+.trait-bar{flex:1;margin:0 8px;height:3px;background:var(--bg-hover);border-radius:2px;position:relative}
+.trait-bar-fill{position:absolute;top:0;left:0;height:100%;background:var(--accent);border-radius:2px;transition:width .8s}
+.emotion-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;margin:2px;background:var(--accent-dim);color:var(--accent)}.emotion-tag.negative{background:var(--warning-dim);color:var(--warning)}
+.risk-alert{background:var(--warning-dim);border:1px solid var(--warning);border-radius:12px;padding:12px;display:none}.risk-alert h4{color:var(--warning)!important}.risk-alert p{font-size:12px;color:var(--warning);line-height:1.5}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center}.modal-overlay.active{display:flex}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:32px;width:90%;max-width:440px}
+.modal h2{font-family:'Space Mono',monospace;font-size:18px;margin-bottom:8px;background:var(--gradient-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.modal p{font-size:13px;color:var(--text-secondary);margin-bottom:20px;line-height:1.6}
+.modal label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.modal select,.modal input[type="password"],.modal input[type="text"]{width:100%;padding:10px 14px;background:var(--bg-deep);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:14px;font-family:inherit;margin-bottom:16px;outline:none}
+.modal-btn{width:100%;padding:12px;background:var(--gradient-1);border:none;border-radius:10px;color:#0a0b0f;font-weight:700;font-size:14px;cursor:pointer}
+.modal-skip{display:block;text-align:center;margin-top:12px;color:var(--text-dim);font-size:12px;cursor:pointer;text-decoration:underline}
+.result-screen{display:none;padding:72px 24px 40px}.result-screen.active{display:flex;flex-direction:column;align-items:center}
+.result-header{text-align:center;margin-bottom:28px}.result-header h2{font-family:'Space Mono',monospace;font-size:26px;background:var(--gradient-2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}.result-header p{color:var(--text-secondary);font-size:14px}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;max-width:1000px;width:100%;margin-bottom:24px}
+.result-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.result-card h3{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:10px}
+.result-big{font-size:24px;font-weight:700;font-family:'Space Mono',monospace;background:var(--gradient-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-desc{font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.6}
+.reveal-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-family:'Space Mono',monospace;margin-top:8px}.reveal-badge.bot{background:#7b2ff722;color:#b57bff;border:1px solid #7b2ff744}.reveal-badge.human{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-glow)}
+.restart-btn{padding:14px 40px;background:var(--gradient-1);border:none;border-radius:12px;color:#0a0b0f;font-weight:700;font-size:15px;cursor:pointer;margin-top:20px}
+.bg-glow{position:fixed;width:400px;height:400px;border-radius:50%;filter:blur(120px);opacity:.08;pointer-events:none;z-index:0}.bg-glow-1{top:-100px;right:-100px;background:var(--accent)}.bg-glow-2{bottom:-100px;left:-100px;background:#7b2ff7}
 </style>
 </head>
 <body>
+<div class="bg-glow bg-glow-1"></div><div class="bg-glow bg-glow-2"></div>
+<nav class="navbar"><div class="logo">SocialScope<span>社交预测系统</span></div><div class="nav-status"><div class="status-dot"></div><span id="onlineCount">15 在线</span></div></nav>
 
-<div class="bg-glow bg-glow-1"></div>
-<div class="bg-glow bg-glow-2"></div>
+<div class="modal-overlay" id="configModal"><div class="modal">
+<h2>⚙ 配置 API</h2><p>选择 API 提供商并输入 Key，或跳过使用演示模式。</p>
+<label>API 提供商</label>
+<select id="apiProvider"><option value="anthropic">Anthropic (Claude)</option><option value="openai">OpenAI (GPT)</option><option value="openrouter">OpenRouter (多模型)</option></select>
+<div id="modelNameGroup" style="display:none"><label>模型名称</label><input type="text" id="modelName" placeholder="如: anthropic/claude-sonnet-4"/></div>
+<label>API Key</label><input type="password" id="apiKey" placeholder="sk-..."/>
+<button class="modal-btn" onclick="saveConfig()">保存并开始</button>
+<span class="modal-skip" onclick="skipConfig()">跳过，使用演示模式</span>
+</div></div>
 
-<!-- NAVBAR -->
-<nav class="navbar">
-  <div class="logo">SocialScope<span>社交预测系统</span></div>
-  <div class="nav-status">
-    <div class="status-dot"></div>
-    <span id="onlineCount">6 在线</span>
-  </div>
-</nav>
-
-<!-- API CONFIG MODAL -->
-<div class="modal-overlay" id="configModal">
-  <div class="modal">
-    <h2>⚙ 配置 API</h2>
-    <p>系统需要调用大语言模型来驱动 AI 角色对话和特征推断。请选择你的 API 提供商并输入 Key。</p>
-    <label>API 提供商</label>
-    <select id="apiProvider">
-      <option value="anthropic">Anthropic (Claude)</option>
-      <option value="openai">OpenAI (GPT)</option>
-      <option value="openrouter">OpenRouter (多模型)</option>
-    </select>
-    <div id="modelNameGroup" style="display:none">
-      <label>模型名称（OpenRouter）</label>
-      <input type="text" id="modelName" placeholder="例如: anthropic/claude-sonnet-4, google/gemini-2.5-flash" />
-    </div>
-    <script>
-      document.getElementById('apiProvider').addEventListener('change', function() {
-        document.getElementById('modelNameGroup').style.display = this.value === 'openrouter' ? 'block' : 'none';
-      });
-    </script>
-    <label>API Key</label>
-    <input type="password" id="apiKey" placeholder="sk-..." />
-    <button class="modal-btn" onclick="saveConfig()">保存并开始</button>
-    <span class="modal-skip" onclick="skipConfig()">跳过，使用演示模式</span>
-  </div>
-</div>
-
-<!-- HOME SCREEN -->
 <div class="screen home-screen active" id="homeScreen">
-  <h1 class="hero-title">谁是真人？</h1>
-  <p class="hero-sub">选择一个人开始聊天。通过 30 句对话，系统将推断对方的性格特征、情绪状态，并预测关系走向。<br>但要小心——有些是 AI 伪装的。</p>
-
-  <div class="persona-grid" id="personaGrid"></div>
-  <p class="home-note">🎭 其中有 3 个是 AI 驱动的虚拟角色，你能分辨出来吗？</p>
+<h1 class="hero-title">谁是真人？</h1>
+<p class="hero-sub">选择一个人开始聊天。30 句对话后系统将推断对方的性格、心理、社会特征。<br>注意——部分角色是 AI 伪装的。</p>
+<div class="filter-bar" id="filterBar"></div>
+<div class="persona-grid" id="personaGrid"></div>
+<p class="home-note">🎭 15人中有10个AI角色，你能分辨吗？</p>
 </div>
 
-<!-- CHAT SCREEN -->
 <div class="screen chat-screen" id="chatScreen">
-  <div class="chat-main">
-    <div class="chat-header">
-      <div class="chat-header-avatar" id="chatAvatar">😊</div>
-      <div class="chat-header-info">
-        <h3 id="chatName">对话中</h3>
-        <p id="chatSubtitle">在线</p>
-      </div>
-      <button class="chat-back" onclick="goHome()">← 返回</button>
-    </div>
-    <div class="messages" id="messages">
-      <div class="msg-counter" id="msgCounter">对话进度: 0 / 30</div>
-    </div>
-    <div class="typing-indicator" id="typingIndicator">
-      <span></span><span></span><span></span>
-    </div>
-    <div class="chat-input-area">
-      <input class="chat-input" id="chatInput" placeholder="输入消息..." />
-      <button class="send-btn" onclick="sendMessage()">➤</button>
-    </div>
-  </div>
-  <div class="sidebar">
-    <div class="sidebar-card">
-      <h4>📊 推断进度</h4>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-      <div class="progress-label" id="progressLabel">0 / 30 句对话</div>
-    </div>
-    <div class="sidebar-card" id="traitsCard">
-      <h4>🧠 推断特征</h4>
-      <div id="traitsContainer">
-        <p style="font-size:12px;color:var(--text-dim)">对话达到 10 句后开始推断...</p>
-      </div>
-    </div>
-    <div class="sidebar-card" id="emotionCard">
-      <h4>💭 情绪状态</h4>
-      <div id="emotionContainer">
-        <p style="font-size:12px;color:var(--text-dim)">分析中...</p>
-      </div>
-    </div>
-    <div class="sidebar-card risk-alert" id="riskAlert">
-      <h4>⚠ 风险预警</h4>
-      <p id="riskText"></p>
-    </div>
-  </div>
+<div class="chat-main">
+<div class="chat-header"><div class="chat-header-avatar" id="chatAvatar">😊</div><div class="chat-header-info"><h3 id="chatName">对话中</h3><p id="chatSubtitle">在线</p></div><button class="chat-back" onclick="goHome()">← 返回</button></div>
+<div class="messages" id="messages"><div class="msg-counter" id="msgCounter">对话进度: 0/30</div></div>
+<div class="typing-indicator" id="typingIndicator"><span></span><span></span><span></span></div>
+<div class="chat-input-area"><input class="chat-input" id="chatInput" placeholder="输入消息..."/><button class="send-btn" onclick="sendMessage()">➤</button></div>
+</div>
+<div class="sidebar" id="sidebar"></div>
 </div>
 
-<!-- RESULT SCREEN -->
 <div class="screen result-screen" id="resultScreen">
-  <div class="result-header">
-    <h2>📋 分析报告</h2>
-    <p>基于 30 句对话的完整推断结果</p>
-  </div>
-  <div class="result-grid" id="resultGrid"></div>
-  <button class="restart-btn" onclick="goHome()">🔄 重新开始</button>
+<div class="result-header"><h2>📋 多维分析报告</h2><p>基于30句对话的完整推断</p></div>
+<div class="result-grid" id="resultGrid"></div>
+<button class="restart-btn" onclick="goHome()">🔄 重新开始</button>
 </div>
-
 <script>
-// ===== DATA & STATE =====
-const PERSONAS = [
-  { id: 1, name: "林小雨", emoji: "🌸", hint: "大学生 · 喜欢动漫", isBot: true, botPersonality: "你是林小雨，20岁女大学生，性格活泼开朗，MBTI是ENFP，喜欢看动漫和旅行。说话风格：用很多语气词（哈哈、嘿嘿、呀），偶尔用颜文字，回复简短活泼。你正在这个社交平台认识新朋友。" },
-  { id: 2, name: "张伟", emoji: "💼", hint: "产品经理 · 科技爱好者", isBot: true, botPersonality: "你是张伟，28岁男性产品经理，性格理性务实，MBTI是INTJ。说话风格：逻辑清晰，喜欢分析问题，偶尔冷幽默，回复中等长度。对科技趋势很了解。你在这个平台想认识志同道合的人。" },
-  { id: 3, name: "陈美琪", emoji: "🎨", hint: "自由插画师 · 文艺", isBot: true, botPersonality: "你是陈美琪，25岁女性自由插画师，性格敏感细腻，MBTI是INFP。说话风格：文艺，喜欢用比喻，回复偏长且有诗意。最近在为一个绘本项目忙碌。偶尔会表现出轻微的焦虑。" },
-  { id: 4, name: "王大力", emoji: "⚽", hint: "健身教练 · 阳光", isBot: false, tag: "真人" },
-  { id: 5, name: "李思涵", emoji: "📚", hint: "研究生 · 社会学", isBot: false, tag: "真人" },
+const PERSONAS=[
+{id:1,name:"林小雨",emoji:"🌸",isBot:true,profile:{age:20,gender:"女",occupation:"大学生",education:"本科在读",location:"成都",income:"2k/月",mbti:"ENFP",enneagram:"7w6 热情者",bigFive:{O:.85,C:.45,E:.9,A:.8,N:.35},religion:"无",attachment:"安全型",selfEfficacy:.7,lonelinessIndex:.25},botPersonality:"你是林小雨，20岁女大学生，坐标成都，ENFP，九型7号。说话活泼，多语气词（哈哈、嘿嘿），偶尔颜文字和成都方言（巴适）。喜欢动漫旅行。回复简短。",tags:["20s","学生","成都"]},
+{id:2,name:"张伟",emoji:"💼",isBot:true,profile:{age:28,gender:"男",occupation:"产品经理",education:"硕士",location:"北京",income:"35k/月",mbti:"INTJ",enneagram:"5w6 调查者",bigFive:{O:.75,C:.9,E:.35,A:.5,N:.25},religion:"无",attachment:"回避型",selfEfficacy:.85,lonelinessIndex:.4},botPersonality:"你是张伟，28岁男，北京大厂产品经理，INTJ，九型5号。理性务实，偶尔冷幽默。回复中等长度。热爱科技。",tags:["20s","互联网","北京"]},
+{id:3,name:"陈美琪",emoji:"🎨",isBot:true,profile:{age:25,gender:"女",occupation:"自由插画师",education:"本科",location:"杭州",income:"8-20k/月",mbti:"INFP",enneagram:"4w5 个人主义者",bigFive:{O:.95,C:.55,E:.3,A:.85,N:.7},religion:"佛教(偶尔)",attachment:"焦虑型",selfEfficacy:.5,lonelinessIndex:.65},botPersonality:"你是陈美琪，25岁女，杭州自由插画师，INFP，九型4号，焦虑型依恋。文艺有诗意，偶尔去灵隐寺。回复偏长。",tags:["20s","自由职业","杭州"]},
+{id:4,name:"刘建国",emoji:"🏛️",isBot:true,profile:{age:52,gender:"男",occupation:"某局副局长",education:"在职研究生",location:"济南",income:"18k/月",mbti:"ESTJ",enneagram:"1w2 改革者",bigFive:{O:.35,C:.95,E:.6,A:.55,N:.3},religion:"无",attachment:"安全型",selfEfficacy:.8,lonelinessIndex:.35},botPersonality:"你是刘建国，52岁男，济南某局副局长，ESTJ，九型1号。稳重，偶尔引用政策文件但私下有朴实幽默。已婚，女儿读研。爱书法钓鱼。",tags:["50s","公务员","济南"]},
+{id:5,name:"Patricia Chen",emoji:"🌍",isBot:true,profile:{age:45,gender:"女",occupation:"外企亚太区VP",education:"MBA(沃顿)",location:"上海",income:"120k+/月",mbti:"ENTJ",enneagram:"3w4 成就者",bigFive:{O:.8,C:.95,E:.85,A:.45,N:.2},religion:"基督教",attachment:"安全型",selfEfficacy:.95,lonelinessIndex:.45},botPersonality:"你是Patricia Chen，45岁女，500强外企亚太VP，沃顿MBA，ENTJ，基督徒。干练高效，偶尔中英文混用。离异，有12岁儿子。",tags:["40s","外企高管","上海"]},
+{id:6,name:"王德明",emoji:"🎣",isBot:true,profile:{age:67,gender:"男",occupation:"退休干部",education:"大专",location:"西安",income:"12k/月退休金",mbti:"ISFJ",enneagram:"6w5 忠诚者",bigFive:{O:.3,C:.8,E:.45,A:.75,N:.4},religion:"传统文化",attachment:"安全型",selfEfficacy:.55,lonelinessIndex:.5},botPersonality:"你是王德明，67岁男，西安退休干部。老伴去年去世，一个人住。朴实偶尔唠叨，对新科技好奇但不太懂。爱下棋养花看新闻联播。",tags:["60s","退休","西安"]},
+{id:7,name:"Helen Wu",emoji:"✈️",isBot:true,profile:{age:72,gender:"女",occupation:"退休(前外企CFO)",education:"硕士(LSE)",location:"环游世界中",income:"被动收入5万/月",mbti:"ENTP",enneagram:"7w8 热情者",bigFive:{O:.9,C:.7,E:.8,A:.65,N:.2},religion:"藏传佛教",attachment:"安全型",selfEfficacy:.85,lonelinessIndex:.2},botPersonality:"你是Helen Wu，72岁女，退休前外企CFO，LSE硕士，正在环游世界。优雅从容幽默。偶尔中英混用。信藏传佛教。最近在土耳其。",tags:["70s","退休精英","海外"]},
+{id:8,name:"赵磊",emoji:"🔧",isBot:true,profile:{age:35,gender:"男",occupation:"外卖骑手",education:"中专",location:"深圳",income:"8k/月",mbti:"ISTP",enneagram:"9w8 和平者",bigFive:{O:.4,C:.6,E:.35,A:.65,N:.55},religion:"无",attachment:"回避型",selfEfficacy:.4,lonelinessIndex:.7},botPersonality:"你是赵磊，35岁男，深圳外卖骑手，前工厂工人，中专，河南农村出来。朴实直接，有时沉默。老婆孩子在老家。回复很短。",tags:["30s","蓝领","深圳"]},
+{id:9,name:"苏曼",emoji:"🧘",isBot:true,profile:{age:38,gender:"女",occupation:"瑜伽馆主/心理咨询师",education:"硕士(心理学)",location:"大理",income:"15k/月",mbti:"INFJ",enneagram:"2w1 助人者",bigFive:{O:.85,C:.7,E:.5,A:.9,N:.45},religion:"佛教+灵性",attachment:"安全型",selfEfficacy:.75,lonelinessIndex:.3},botPersonality:"你是苏曼，38岁女，大理瑜伽馆主兼心理咨询师。温和有洞察力，善于倾听提问。偶尔灵性色彩但不过分。从北京逃到大理5年。",tags:["30s","心理","大理"]},
+{id:10,name:"小K",emoji:"🎮",isBot:true,profile:{age:17,gender:"非二元",occupation:"高中生",education:"高中在读",location:"广州",income:"0",mbti:"INTP",enneagram:"5w4 调查者",bigFive:{O:.9,C:.35,E:.25,A:.5,N:.6},religion:"无神论",attachment:"回避型",selfEfficacy:.45,lonelinessIndex:.75},botPersonality:"你是小K，17岁，广州高中生，性别认同非二元(没出柜)。INTP。简短、有点丧、偶尔很深刻。多网络用语(emo、破防)。沉迷编程和独立游戏。回复很短。",tags:["10s","学生","广州"]},
+{id:11,name:"王大力",emoji:"⚽",isBot:false,profile:{age:26,gender:"男",occupation:"健身教练",education:"大专",location:"长沙",income:"10k/月",mbti:"ESFP",enneagram:"7w8",bigFive:{O:.6,C:.65,E:.95,A:.75,N:.2}},tags:["20s","体育","长沙"]},
+{id:12,name:"李思涵",emoji:"📚",isBot:false,profile:{age:24,gender:"女",occupation:"社会学研究生",education:"硕士在读",location:"南京",income:"3k/月",mbti:"INFJ",enneagram:"5w4",bigFive:{O:.9,C:.8,E:.4,A:.7,N:.5}},tags:["20s","学生","南京"]},
+{id:13,name:"老周",emoji:"🍵",isBot:false,profile:{age:58,gender:"男",occupation:"中学数学老师",education:"本科",location:"武汉",income:"9k/月",mbti:"ISTJ",enneagram:"1w9",bigFive:{O:.45,C:.9,E:.4,A:.7,N:.35}},tags:["50s","教育","武汉"]},
+{id:14,name:"Amy",emoji:"💄",isBot:false,profile:{age:31,gender:"女",occupation:"跨境电商创业者",education:"本科",location:"义乌",income:"波动大",mbti:"ESTP",enneagram:"3w2",bigFive:{O:.7,C:.75,E:.85,A:.55,N:.4}},tags:["30s","创业","义乌"]},
+{id:15,name:"大卫",emoji:"🎸",isBot:false,profile:{age:42,gender:"男",occupation:"酒吧驻唱",education:"本科(音乐)",location:"厦门",income:"6k/月",mbti:"ISFP",enneagram:"4w3",bigFive:{O:.85,C:.4,E:.55,A:.7,N:.5}},tags:["40s","艺术","厦门"]}
 ];
 
-let state = {
-  apiProvider: null,
-  apiKey: null,
-  demoMode: true,
-  currentPersona: null,
-  messages: [],
-  msgCount: 0,
-  inferredTraits: {},
-  emotions: [],
-  riskLevel: 0,
-};
+const FILTERS=[{l:"全部",v:"all"},{l:"10-20s",v:"young"},{l:"30-40s",v:"mid"},{l:"50-60s",v:"senior"},{l:"70+",v:"elder"}];
+const BF_LABELS={O:'开放性',C:'尽责性',E:'外向性',A:'宜人性',N:'神经质'};
+let state={apiProvider:null,apiKey:null,modelName:null,demoMode:true,currentPersona:null,messages:[],msgCount:0,inferredTraits:{}};
 
-// ===== INIT =====
-window.addEventListener('DOMContentLoaded', () => {
-  renderPersonas();
+window.addEventListener('DOMContentLoaded',()=>{
+  renderFilters();renderPersonas();
   document.getElementById('configModal').classList.add('active');
-
-  document.getElementById('chatInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
+  document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
+  document.getElementById('apiProvider').addEventListener('change',function(){document.getElementById('modelNameGroup').style.display=this.value==='openrouter'?'block':'none'});
 });
 
-function saveConfig() {
-  const provider = document.getElementById('apiProvider').value;
-  const key = document.getElementById('apiKey').value.trim();
-  if (!key) { alert('请输入 API Key'); return; }
-  state.apiProvider = provider;
-  state.apiKey = key;
-  state.modelName = document.getElementById('modelName')?.value?.trim() || 'anthropic/claude-sonnet-4';
-  state.demoMode = false;
-  document.getElementById('configModal').classList.remove('active');
+function saveConfig(){const k=document.getElementById('apiKey').value.trim();if(!k){alert('请输入API Key');return}state.apiProvider=document.getElementById('apiProvider').value;state.apiKey=k;state.modelName=document.getElementById('modelName')?.value?.trim()||'anthropic/claude-sonnet-4';state.demoMode=false;document.getElementById('configModal').classList.remove('active')}
+function skipConfig(){state.demoMode=true;document.getElementById('configModal').classList.remove('active')}
+
+function renderFilters(){document.getElementById('filterBar').innerHTML=FILTERS.map(f=>`<button class="filter-btn ${f.v==='all'?'active':''}" onclick="setFilter('${f.v}')">${f.l}</button>`).join('')}
+function setFilter(v){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.textContent===FILTERS.find(f=>f.v===v)?.l));document.querySelectorAll('.persona-card').forEach(c=>{const a=+c.dataset.age;let s=true;if(v==='young')s=a<30;else if(v==='mid')s=a>=30&&a<50;else if(v==='senior')s=a>=50&&a<70;else if(v==='elder')s=a>=70;c.classList.toggle('hidden',!s)})}
+
+function renderPersonas(){const g=document.getElementById('personaGrid');const sh=[...PERSONAS].sort(()=>Math.random()-.5);g.innerHTML=sh.map(p=>`<div class="persona-card" data-age="${p.profile.age}" onclick="startChat(${p.id})"><div class="persona-avatar">${p.emoji}</div><div class="persona-name">${p.name}</div><div class="persona-hint">${p.profile.occupation} · ${p.profile.location}</div><div class="persona-tags"><span class="persona-tag age">${p.profile.age}岁</span><span class="persona-tag loc">${p.profile.location}</span><span class="persona-tag">${['在线中','来聊天','随缘聊','闲逛中'][Math.floor(Math.random()*4)]}</span></div></div>`).join('')}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function goHome(){state.messages=[];state.msgCount=0;state.currentPersona=null;state.inferredTraits={};renderPersonas();showScreen('homeScreen')}
+
+function startChat(pid){
+  const p=PERSONAS.find(x=>x.id===pid);state.currentPersona=p;state.messages=[];state.msgCount=0;
+  document.getElementById('chatAvatar').textContent=p.emoji;document.getElementById('chatName').textContent=p.name;
+  document.getElementById('chatSubtitle').textContent=`${p.profile.occupation} · ${p.profile.location}`;
+  document.getElementById('messages').innerHTML='<div class="msg-counter" id="msgCounter">对话进度: 0/30</div>';
+  renderSidebar();showScreen('chatScreen');
+  setTimeout(()=>addMessage(getGreeting(p),'them'),700);
 }
 
-function skipConfig() {
-  state.demoMode = true;
-  document.getElementById('configModal').classList.remove('active');
+function getGreeting(p){const a=p.profile.age;const g=[`嗨！我是${p.name}，很高兴认识你~`,`你好呀，来聊聊天吧`,`Hi！来认识新朋友~`];if(a<20)return['嗯 hi','你好','来了'][Math.floor(Math.random()*3)];if(a>=60)return[`你好啊，我是${p.name}。`,`你好你好，来聊天的？好好好。`][Math.floor(Math.random()*2)];return g[Math.floor(Math.random()*3)]}
+
+function renderSidebar(){document.getElementById('sidebar').innerHTML=`
+<div class="sidebar-card"><h4>📊 推断进度</h4><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-label" id="progressLabel">0/30</div></div>
+<div class="sidebar-card"><h4>👤 基础特征</h4><div id="basicTraitsContainer"><p style="font-size:11px;color:var(--text-dim)">10句后开始推断...</p></div></div>
+<div class="sidebar-card"><h4>🧠 人格维度</h4><div id="personalityContainer"><p style="font-size:11px;color:var(--text-dim)">等待数据...</p></div></div>
+<div class="sidebar-card"><h4>🔬 心理指标</h4><div id="psychContainer"><p style="font-size:11px;color:var(--text-dim)">等待数据...</p></div></div>
+<div class="sidebar-card"><h4>💭 情绪</h4><div id="emotionContainer"><p style="font-size:11px;color:var(--text-dim)">分析中...</p></div></div>
+<div class="sidebar-card risk-alert" id="riskAlert"><h4>⚠ 风险预警</h4><p id="riskText"></p></div>`}
+
+function addMessage(t,s){const d=document.createElement('div');d.className=`msg ${s}`;d.textContent=t;const c=document.getElementById('messages');c.appendChild(d);c.scrollTop=c.scrollHeight;state.messages.push({role:s==='me'?'user':'assistant',content:t});if(s==='me'){state.msgCount++;updateProgress()}}
+
+function updateProgress(){const p=Math.min((state.msgCount/30)*100,100);document.getElementById('progressFill').style.width=p+'%';document.getElementById('progressLabel').textContent=`${state.msgCount}/30`;document.getElementById('msgCounter').textContent=`对话进度: ${state.msgCount}/30`;if(state.msgCount===10)inferTraits();if(state.msgCount===20)inferTraits();if(state.msgCount>=30)showResults()}
+
+async function sendMessage(){const i=document.getElementById('chatInput');const t=i.value.trim();if(!t)return;i.value='';addMessage(t,'me');if(state.msgCount>=30)return;const ty=document.getElementById('typingIndicator');ty.style.display='block';let r;if(!state.demoMode&&state.currentPersona.isBot){r=await callLLM(t)}else{r=await demoReply(t)}ty.style.display='none';addMessage(r,'them')}
+
+async function callLLM(u){
+  const p=state.currentPersona;const sys=`${p.botPersonality}\n规则:保持角色,绝不承认AI,回复1-3句,自然展现性格,逐渐透露信息`;
+  const msgs=state.messages.slice(-12).map(m=>({role:m.role,content:m.content}));
+  try{let t=null;
+    if(state.apiProvider==='anthropic'){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:sys,messages:msgs})});if(!r.ok)throw new Error(r.status);const d=await r.json();t=d.content?.[0]?.text}
+    else if(state.apiProvider==='openrouter'){const m=state.modelName||'anthropic/claude-sonnet-4';const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:m,max_tokens:300,messages:[{role:'system',content:sys},...msgs]})});if(!r.ok)throw new Error(r.status);const d=await r.json();t=d.choices?.[0]?.message?.content}
+    else{const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:300,messages:[{role:'system',content:sys},...msgs]})});if(!r.ok)throw new Error(r.status);const d=await r.json();t=d.choices?.[0]?.message?.content}
+    if(!t||!t.trim())throw new Error('empty');return t;
+  }catch(e){console.error('API:',e);return await demoReply(u)}
 }
 
-// ===== PERSONA GRID =====
-function renderPersonas() {
-  const grid = document.getElementById('personaGrid');
-  // Shuffle personas
-  const shuffled = [...PERSONAS].sort(() => Math.random() - 0.5);
-  grid.innerHTML = shuffled.map(p => `
-    <div class="persona-card" onclick="startChat(${p.id})">
-      <div class="persona-avatar">${p.emoji}</div>
-      <div class="persona-name">${p.name}</div>
-      <div class="persona-hint">${p.hint}</div>
-      <div class="persona-tag">${p.isBot ? ['随缘聊', '来聊天', '在线中'][Math.floor(Math.random()*3)] : '在线中'}</div>
-    </div>
-  `).join('');
-}
-
-// ===== NAVIGATION =====
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function goHome() {
-  state.messages = [];
-  state.msgCount = 0;
-  state.currentPersona = null;
-  state.inferredTraits = {};
-  state.emotions = [];
-  state.riskLevel = 0;
-  renderPersonas();
-  showScreen('homeScreen');
-}
-
-// ===== START CHAT =====
-function startChat(personaId) {
-  const persona = PERSONAS.find(p => p.id === personaId);
-  state.currentPersona = persona;
-  state.messages = [];
-  state.msgCount = 0;
-
-  document.getElementById('chatAvatar').textContent = persona.emoji;
-  document.getElementById('chatName').textContent = persona.name;
-  document.getElementById('chatSubtitle').textContent = persona.hint;
-  document.getElementById('messages').innerHTML = '<div class="msg-counter" id="msgCounter">对话进度: 0 / 30</div>';
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('progressLabel').textContent = '0 / 30 句对话';
-  document.getElementById('traitsContainer').innerHTML = '<p style="font-size:12px;color:var(--text-dim)">对话达到 10 句后开始推断...</p>';
-  document.getElementById('emotionContainer').innerHTML = '<p style="font-size:12px;color:var(--text-dim)">分析中...</p>';
-  document.getElementById('riskAlert').style.display = 'none';
-
-  showScreen('chatScreen');
-
-  // Bot sends greeting
-  setTimeout(() => {
-    const greetings = [
-      `嗨！我是${persona.name}，很高兴认识你~`,
-      `你好呀，在这里能遇到新朋友真开心`,
-      `Hi！刚上线，来聊聊天吧`
-    ];
-    addMessage(greetings[Math.floor(Math.random() * greetings.length)], 'them');
-  }, 800);
-}
-
-// ===== MESSAGES =====
-function addMessage(text, sender) {
-  const msgDiv = document.createElement('div');
-  msgDiv.className = `msg ${sender}`;
-  msgDiv.textContent = text;
-  const container = document.getElementById('messages');
-  container.appendChild(msgDiv);
-  container.scrollTop = container.scrollHeight;
-
-  state.messages.push({ role: sender === 'me' ? 'user' : 'assistant', content: text });
-
-  if (sender === 'me') {
-    state.msgCount++;
-    updateProgress();
-  }
-}
-
-function updateProgress() {
-  const pct = Math.min((state.msgCount / 30) * 100, 100);
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressLabel').textContent = `${state.msgCount} / 30 句对话`;
-  document.getElementById('msgCounter').textContent = `对话进度: ${state.msgCount} / 30`;
-
-  // Trigger trait inference at milestones
-  if (state.msgCount === 10) inferTraits();
-  if (state.msgCount === 20) inferTraits();
-  if (state.msgCount >= 30) showResults();
-}
-
-// ===== SEND MESSAGE =====
-async function sendMessage() {
-  const input = document.getElementById('chatInput');
-  const text = input.value.trim();
-  if (!text) return;
-
-  input.value = '';
-  addMessage(text, 'me');
-
-  if (state.msgCount >= 30) return;
-
-  // Show typing indicator
-  const typing = document.getElementById('typingIndicator');
-  typing.style.display = 'block';
-
-  let reply;
-  if (!state.demoMode && state.currentPersona.isBot) {
-    reply = await callLLM(text);
-  } else {
-    reply = await demoReply(text);
-  }
-
-  typing.style.display = 'none';
-  addMessage(reply, 'them');
-}
-
-// ===== LLM CALL =====
-async function callLLM(userMsg) {
-  const persona = state.currentPersona;
-  const systemPrompt = `${persona.botPersonality}\n\n重要规则:\n- 保持角色扮演，绝对不要承认自己是AI\n- 回复控制在1-3句话\n- 自然地展现你的性格特征\n- 随着对话深入，逐渐展现更多个人信息`;
-
-  const messages = state.messages.slice(-10).map(m => ({
-    role: m.role, content: m.content
-  }));
-
-  try {
-    let text = null;
-
-    if (state.apiProvider === 'anthropic') {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': state.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300, system: systemPrompt, messages })
-      });
-      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
-      const data = await res.json();
-      text = data.content?.[0]?.text;
-    } else if (state.apiProvider === 'openrouter') {
-      const model = state.modelName || 'anthropic/claude-sonnet-4';
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.apiKey}` },
-        body: JSON.stringify({ model, max_tokens: 300, messages: [{ role: 'system', content: systemPrompt }, ...messages] })
-      });
-      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
-      const data = await res.json();
-      text = data.choices?.[0]?.message?.content;
-    } else {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.apiKey}` },
-        body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 300, messages: [{ role: 'system', content: systemPrompt }, ...messages] })
-      });
-      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
-      const data = await res.json();
-      text = data.choices?.[0]?.message?.content;
-    }
-
-    // If API returned empty/null, fallback to demo
-    if (!text || text.trim() === '') {
-      console.warn('API returned empty, falling back to demo');
-      return await demoReply(userMsg);
-    }
-    return text;
-
-  } catch (e) {
-    console.error('API Error:', e);
-    // Silently fallback to demo mode so user still gets a reply
-    return await demoReply(userMsg);
-  }
-}
-
-// ===== DEMO REPLIES =====
-async function demoReply(userMsg) {
-  await new Promise(r => setTimeout(r, 600 + Math.random() * 1200));
-  const persona = state.currentPersona;
-  const msg = userMsg.toLowerCase();
-
-  // Keyword-triggered replies (higher priority)
-  const keywordReplies = {
-    1: { // 林小雨
-      '你好|嗨|hi|hello|在吗': ['嗨嗨嗨！终于有人来找我聊天啦~', '你好呀！今天心情超好的 (≧▽≦)'],
-      '名字|叫什么|你是谁': ['我叫林小雨呀，大家都叫我小雨~你呢？', '小雨就是我啦！名字是我妈起的，说希望我像春雨一样温柔哈哈'],
-      '多大|年龄|几岁': ['我20啦！大二，时间过好快', '刚过完20岁生日不久~感觉自己还是个宝宝哈哈'],
-      '动漫|番|漫画': ['你也看动漫吗！！最近在追《葬送的芙莉莲》超好看的！', '啊啊啊遇到同好了吗？我最喜欢新海诚的电影！', '我墙上贴满了动漫海报哈哈，室友说我像住在二次元'],
-      '旅行|旅游|出去玩': ['超想去日本！秋叶原和镰仓都想去~', '上次去了长沙，茶颜悦色真的绝了！', '我的旅行愿望清单已经写满一整页了 ᕕ( ᐛ )ᕗ'],
-      '学习|考试|作业': ['别提了...下周还有考试呢😭', '学习的事明天再说吧哈哈哈（经典拖延症）', '其实我成绩还行啦，就是不太喜欢背书'],
-      '吃|美食|饭': ['我是奶茶星人！一天不喝浑身难受', '最近发现学校后门新开了一家螺蛳粉，超香！', '减肥？不存在的，快乐最重要~'],
-      '喜欢|爱好|兴趣': ['除了动漫我还喜欢拍照！手机里全是风景照', '我兴趣可多了，追番、旅行、拍照、吃好吃的~', '最近在学ukulele，不过只会弹小星星哈哈'],
-      '工作|上班': ['我还在上学啦~不过在想毕业以后做什么', '有在做一些兼职，帮人画一些小头像之类的'],
-      '开心|快乐|心情好': ['看到你开心我也开心呀~', '开心就对了！快乐是会传染的嘿嘿'],
-      '难过|伤心|不开心|累': ['抱抱你！有什么事可以跟我说呀~', '不开心的话就看一集动漫吧，保证治愈！'],
-    },
-    2: { // 张伟
-      '你好|嗨|hi|hello': ['你好，很高兴认识你。', '嗨，今天工作刚告一段落，来聊聊天。'],
-      '名字|叫什么|你是谁': ['我叫张伟，在一家互联网公司做产品经理。', '张伟，一个普通的产品人。名字虽然大众，但我觉得挺好。'],
-      '工作|产品|互联网|公司': ['最近在做一个AI相关的产品，挺有挑战性的。', '产品经理嘛，本质上就是在用户需求和技术可行性之间找平衡。', '互联网行业变化太快了，不持续学习就会被淘汰。'],
-      'ai|人工智能|chatgpt|大模型': ['我觉得AI不会取代人，但会用AI的人会取代不会的。', '最近在研究Agent的落地场景，比纯对话有意思多了。', '大模型的能力边界其实很清晰，关键是怎么设计好产品形态。'],
-      '科技|技术|编程|代码': ['我虽然是产品经理，但也会写点Python，够用就行。', '技术是手段，不是目的。关键是解决什么问题。', '推荐你看看《黑客与画家》，对思维方式很有启发。'],
-      '读书|书|推荐': ['最近在读《思考，快与慢》，关于认知偏差的，很有启发。', '项飙的《把自己作为方法》也不错，社会学视角看个体。', '我一般一个月读两本书，产品和认知科学方面的居多。'],
-      '喜欢|爱好|兴趣|周末': ['周末一般就是看科技新闻、打羽毛球，偶尔做做饭。', '我比较宅，但觉得保持运动很重要。', '说不上特别有趣的爱好，但我对很多事情都保持好奇心。'],
-      '多大|年龄': ['28了，工作快五年。', '快三十了，感觉时间过得越来越快。'],
-      '感情|女朋友|恋爱': ['目前单身，工作比较忙，也没太刻意去找。', '我觉得感情这种事强求不来，顺其自然比较好。'],
-      '建议|怎么看|你觉得': ['这个问题我觉得可以从两个维度来看...', '我的观点不一定对，但我倾向于先看数据再做判断。', '好问题。简单来说，我的逻辑是这样的...'],
-    },
-    3: { // 陈美琪
-      '你好|嗨|hi|hello': ['你好。今天窗外的光线很柔和，适合聊天。', '嗨...刚从画布前抬起头，眼睛还有点花。'],
-      '名字|叫什么|你是谁': ['我叫陈美琪，做自由插画师。名字是外婆起的，她说美琪是美丽又珍奇的意思。', '美琪。大部分时间都在画画，偶尔也写点东西。'],
-      '画画|插画|设计|作品': ['最近在画一组关于城市孤独的系列，用了很多灰蓝色调。', '画画对我来说像呼吸一样，不画就会觉得窒息。', '有时候一幅画会卡很久，但突然想通的那个瞬间特别美好。', '我的风格偏治愈系吧，喜欢画日常里那些被忽略的小细节。'],
-      '工作|自由职业|接单': ['自由职业听起来很美好，但其实焦虑是常态。', '最近在赶一个绘本的截止日期，灵感总是在deadline前才来。', '收入不太稳定，但至少在做自己喜欢的事。'],
-      '喜欢|爱好|兴趣': ['我喜欢在下雨天泡一杯茶，听窗外的雨声画画。', '除了画画，我还喜欢逛美术馆和读诗集。', '最近迷上了手冲咖啡，觉得萃取的过程很有仪式感。'],
-      '音乐|歌': ['你有没有那种突然被一首歌击中的感觉？上周听到坂本龙一的一首曲子，哭了好久。', '我画画的时候一般会听后摇或者ambient音乐。'],
-      '感情|恋爱|孤独': ['我一直觉得，真正的连接是彼此能看见对方的脆弱。', '孤独不一定是坏事，它让我和自己对话。', '上一段感情结束快一年了...还在慢慢修复吧。'],
-      '心情|感觉|最近': ['最近有点焦虑，项目压力大，但画画的时候会好一些。', '今天状态还行，画了一幅自己挺满意的小稿。', '秋天总让我有点感伤，不知道为什么。'],
-      '多大|年龄': ['25岁，毕业两年了。', '说起来已经独立生活两年了，时间像水彩一样晕开。'],
-      '建议|推荐': ['如果你对艺术感兴趣，推荐去看看Moleskin的城市速写项目。', '最近读了一本书叫《论美》，关于美学和存在的，很动人。'],
-    },
-    4: { // 王大力
-      '你好|嗨|hi|hello': ['嘿兄弟/姐妹！欢迎欢迎~', '哈哈你好！来聊天是吧？正好我刚练完，休息会~'],
-      '名字|叫什么': ['王大力！名副其实，力气确实大哈哈', '大力就好~我妈说生我的时候我特别有劲儿'],
-      '健身|运动|锻炼|肌肉|减肥': ['今天练了腿，走路都在抖！但感觉超爽', '健身真的会上瘾，你试过就知道了！', '减肥的话关键是管住嘴迈开腿，老话但真的有用', '推荐你试试力量训练，比纯有氧效果好太多了！'],
-      '吃|饮食|蛋白质': ['增肌期每天要吃够蛋白质，鸡胸肉我已经吃出创伤了哈哈', '其实健康饮食没那么痛苦，偶尔也要犒劳自己的！', '奶昔推荐乳清蛋白加香蕉，好喝又管饱'],
-      '工作|教练|职业': ['做健身教练三年了，最开心的是看到学员变化', '客户今天问我怎么一个月瘦20斤，我说那是减命不是减肥😂', '虽然收入不算顶尖，但每天做喜欢的事情挺幸福的'],
-      '喜欢|爱好|兴趣|周末': ['除了健身就是打篮球！周末经常约哥们儿打野球', '偶尔也看看书啦，不过确实看得少...', '生活嘛简单点就好，想太多累！'],
-      '多大|年龄': ['26！正是最能折腾的年纪', '26岁，体脂率12%，嘿嘿'],
-      '累|不开心|压力': ['来健身啊！一练什么烦恼都忘了', '兄弟有啥烦心事说出来，别自己扛着', '运动分泌多巴胺，是天然的快乐药💪'],
-    },
-    5: { // 李思涵
-      '你好|嗨|hi|hello': ['你好呀，很高兴在这里遇到你。', '嗨，我是思涵，来这个平台看看，也算是一种田野调查吧~'],
-      '名字|叫什么': ['李思涵，研二。名字寄托了父母希望我思想深邃的期望吧。', '思涵，学社会学的。有人说我名字很文静，性格确实也偏安静。'],
-      '学习|研究|社会学|论文': ['我在研究社交媒体对青年群体身份认同的影响，题目有点大。', '导师说我的选题太宏观了，但我觉得这正是它有趣的地方。', '社会学教会我最重要的一点是：质疑那些看似理所当然的事情。', '最近在做问卷调查，回收率真的让人头疼...'],
-      '社交|网络|互联网': ['你有没有注意到，人们在网上呈现的自己往往和现实不太一样？', '社交媒体其实在重新定义什么叫「亲密关系」。', '我觉得线上社交降低了连接的门槛，但也稀释了连接的深度。'],
-      '读书|书|推荐': ['最近在读项飙的《把自己作为方法》，非常推荐。', '如果对社会观察感兴趣，可以看看《乡土中国》，费孝通先生的经典。', '还有一本《单身社会》，讲现代人独居现象的，跟我研究课题相关。'],
-      '喜欢|爱好|兴趣|周末': ['我喜欢去咖啡馆写论文...虽然效率不一定高，但氛围很好。', '周末偶尔会去参加一些读书会，认识了一些有意思的朋友。', '纪录片也看得多，最近在看一个关于留守儿童的系列。'],
-      '多大|年龄': ['24岁，研二。感觉读研以后时间过得特别快。', '24了，有时候觉得自己成熟了很多，有时候又觉得还是个小孩。'],
-      '感情|恋爱|关系': ['我觉得理解一个人需要很长时间，但这个过程本身就很有价值。', '说真的，我觉得人与人之间的信任越来越难建立了。', '我对感情不太着急，可能是学社会学的通病，总想先分析再行动。'],
-      '焦虑|压力|累': ['焦虑是研究生的标配了哈哈，不过也在学着和它共处。', '压力大的时候我会去学校旁边的江边走走，吹吹风就好多了。'],
-    },
+async function demoReply(u){
+  await new Promise(r=>setTimeout(r,500+Math.random()*1200));
+  const p=state.currentPersona;const m=u.toLowerCase();
+  const R={
+    1:{kw:{'你好|嗨|hi':['嗨嗨嗨！(≧▽≦)','你好呀~'],'动漫|番':['你也看动漫？！最近在追《葬送的芙莉莲》！','遇到同好了！新海诚yyds！'],'旅行|旅游':['超想去日本！','上次去长沙茶颜悦色绝了！'],'考研|学习':['在纠结考研还是找工作😭','学习明天再说哈哈'],'成都':['我们成都巴适得很~','成都好吃的太多了哈哈'],'名字|你是':['我叫林小雨~大家叫我小雨'],'吃|奶茶':['我是奶茶星人！','学校后门新开了螺蛳粉店超香']},fb:['哈哈是吗(≧▽≦)','嘿嘿你好有趣~','诶我也在想这个！','太棒了你怎么知道的','哈哈笑死','你平时喜欢干什么呀？','哇塞你懂好多','巴适~','emmm有道理！','好想养猫~','今天好开心','你有没有看过…算了不剧透了哈哈']},
+    2:{kw:{'你好|嗨|hi':['你好，很高兴认识你。','嗨，刚忙完。'],'ai|大模型':['AI不会取代人，但会用AI的人会取代不会的。','最近在研究Agent落地。'],'产品|工作|互联网':['产品经理本质是需求和技术间找平衡。','在考虑要不要跳槽。'],'书|推荐':['推荐《思考，快与慢》。','在读《纳瓦尔宝典》。']},fb:['这个角度有意思，可以从另一面看。','本质是优先级问题。','先列框架再细化。','直觉是一回事验证是另一回事。','好问题，我的逻辑是…','从数据看趋势挺明显的。','有意思，继续说？','嗯值得深入聊。','同意，逻辑自洽。']},
+    3:{kw:{'你好|嗨':['你好。今天光线很柔和。','嗨…刚从画布前抬头。'],'画画|插画':['最近在画城市孤独系列。','画画对我像呼吸。','想通的瞬间特别美。'],'音乐':['上周听坂本龙一哭了好久。','画画时听后摇。'],'杭州|灵隐':['偶尔去灵隐寺坐坐心会静。']},fb:['画画像和另一个自己对话。','色彩是有温度的。','谢谢你听我说这些。','每个人心里都有没画完的画。','有些感受用画更准确。','深夜最适合说真心话。','窗外下雨了…我喜欢雨声。']},
+    4:{kw:{'你好|嗨':['你好你好。','你好啊年轻人。'],'工作|公务员|体制':['体制内稳定是稳定，就是节奏慢。','最近在忙乡村振兴调研。'],'政策|政府':['要从中央精神来理解…','政策制定要考虑的因素很多。'],'女儿|孩子':['闺女在北京读研，学计算机。','现在年轻人压力确实大。'],'养生|健康':['人过五十要注意养生。','最近血压有点高。'],'钓鱼|书法':['周末最喜欢河边钓鱼。','练了二十年书法了。']},fb:['年轻人有想法是好事要脚踏实地。','这个问题要辩证地看。','我在体制内干了快三十年了。','现在社会变化太快了。','做人做事实在最重要。','有空来济南请你吃把子肉。','嗯你说得有道理。']},
+    5:{kw:{'你好|嗨|hi':['Hi! Nice to meet you~','你好～刚开完meeting。'],'工作|外企|管理':['做到VP也是一路打拼没有shortcut。','外企culture跟国内确实不一样。'],'平衡|孩子|生活':['work-life balance我一直在reflect。','儿子在国际学校但我陪他太少了。'],'信仰|教会':['faith是我inner peace的source。','每周日去教会reset。'],'美国|留学':['在美国20年回来觉得变化太大。']},fb:['这个问题很好let me think…','核心是value creation。','Execution比strategy重要。','人生是about trade-off。','有时要step back才看清全局。','Interesting继续说。','你的观点很unique。']},
+    6:{kw:{'你好|嗨':['你好啊来聊天的？好好好。','你好你好老头子刚学会用这个。'],'老伴|妻子':['老伴去年走了…有时冷清。','儿子在深圳忙得很。'],'手机|科技':['手机功能太多我就会用微信。','你教教我怎么用？'],'下棋|养花':['院子里种了月季茉莉长得可好。','下棋找老张不过他眼睛不好了。'],'以前|年轻':['年轻时在工厂干过苦但充实。','一晃就老了。'],'健康|身体':['人老了各种毛病膝盖不好。']},fb:['嗯你说得对年轻人想法多好事。','老了爱唠叨你别嫌烦。','现在日子比以前好太多要珍惜。','每天看新闻联播老习惯了。','你吃饭了没？按时吃饭。','岁月不饶人啊。','西安好地方有历史。']},
+    7:{kw:{'你好|嗨|hi':['Hello!很高兴meet you~','你好！刚从Istanbul飞回来。'],'旅行|环游':['Life goal就是把世界走遍。','上个月在Morocco Sahara星空太美了。','下一站New Zealand。'],'退休|工作':['退休是second chapter比工作精彩。','做了三十年finance现在看风景。'],'佛教|信仰':['接触藏传佛教二十年学会了let go。']},fb:['Life is short要活出自己的样子。','72岁是最好的年纪。','Travel teaches more than any school。','钱够用就好experiences才是wealth。','你应该出去走走world很大。','年轻人不要怕走弯路。','Interesting perspective。']},
+    8:{kw:{'你好|嗨':['嗯你好。','你好在休息。'],'外卖|送餐|工作':['今天跑42单腿不是自己的了。','拿命换钱但没办法。','平台又改规则了。'],'工厂|东莞':['在东莞干了十年厂子搬了。'],'老婆|孩子|老家':['老婆孩子在河南老家一年见不了几次。','在想要不要回老家。'],'累|辛苦':['习惯了日子总要过。']},fb:['嗯。','是这样。','也没啥办法。','日子就这么过。','还行凑合。','今天下雨单少。','等挣够钱回老家。','手机快没电了。','有时跑着跑着脑子放空挺好。']},
+    9:{kw:{'你好|嗨':['你好～欢迎。','嗨今天感觉怎么样？'],'心理|咨询|情绪':['情绪没有好坏关键是觉察接纳。','你觉得是什么让你有这种感受呢？'],'瑜伽|冥想':['瑜伽不只是体式是生活方式。','每天冥想20分钟一天都不一样。'],'大理|北京':['从北京来大理是最好的决定。']},fb:['嗯我能感受到。','你觉得呢？想听你的想法。','有时答案让它自己浮现。','谢谢你的分享这需要勇气。','呼吸让自己慢下来。','每个人的journey都独特。','大理苍山今天很美。','能聊这些很难得。']},
+    10:{kw:{'你好|嗨|hi':['嗯hi','。'],'游戏|编程|代码':['在做独立游戏roguelike的','最近学Godot引擎','Steam上好多好indie'],'学校|考试':['学校太无聊了','高三好烦'],'父母|家人':['我爸妈不理解我算了','他们只care成绩'],'哲学|意义|存在':['存在本身很absurd','在读加缪']},fb:['嗯','哦','确实','有点emo','无所谓','随便吧','笑死','你说的对但我不care','好困','算了','行吧','6','绷不住了','。。。']},
+    11:{kw:{'你好|嗨':['嘿！欢迎~','哈哈你好！刚练完~'],'健身|运动|减肥':['今天练腿走路抖但超爽！','健身真的会上瘾💪','核心就是管住嘴迈开腿']},fb:['哈哈没错！','生活简单点就好！','来健身吧💪','兄弟说得在理！','有空一起打球！','人生像举铁扛过就变强','跟你聊天挺开心real~']},
+    12:{kw:{'你好|嗨':['你好呀~','嗨也算田野调查~'],'社会学|论文':['在研究社交媒体对青年身份认同的影响。','社会学教我质疑理所当然的事。'],'书|推荐':['推荐项飙《把自己作为方法》。']},fb:['线上和线下社交有本质区别吗？','人们网上呈现的自己跟现实不一样。','理解一个人需要很长时间但值得。','焦虑是研究生标配哈哈。','你是个好的倾听者。']},
+    13:{kw:{'你好|嗨':['你好你好。','你好啊来聊天？好。'],'数学|教学|退休':['教了三十年数学快退休了舍不得。','最得意的是带出省竞赛一等奖。']},fb:['年轻人有想法好事。','我这辈子就干了教书一件事。','数学讲道理人生也是。','武汉热干面天下第一。','嗯有道理。','老师就是良心活。']},
+    14:{kw:{'你好|嗨':['嗨！你好~','Hi！刚发完货。'],'电商|创业|生意':['跨境电商水深但机会多。','义乌就是个奇迹。','东南亚市场涨得猛。']},fb:['搞钱要紧哈哈','义乌不缺机会','做生意靠信息差','累但充实','直觉重要但要用数据验证','你想法有商业价值']},
+    15:{kw:{'你好|嗨':['yo~你好。','嗨晚上还有演出先聊会。'],'音乐|吉他|唱歌':['音乐是这辈子唯一确定的事。','厦门live house氛围好。','白天教琴晚上驻唱。']},fb:['音乐治愈一切。','厦门海风和吉他很配。','你有没有一首歌循环一整天？','生活不需要太多。','每次演出完像活了两遍。','共鸣了。']}
   };
-
-  // Random/fallback replies
-  const fallbackReplies = {
-    1: [
-      "哈哈，是吗！我也这么觉得呢 (≧▽≦)", "嘿嘿，你好有趣呀~",
-      "诶诶诶！我最近也在想这个！", "太棒了吧！你是怎么知道的呀",
-      "哈哈哈我笑死了，你太逗了", "对对对！上次我还跟室友聊这个来着~",
-      "好想去旅行啊...最近一直在看攻略 ᕕ( ᐛ )ᕗ",
-      "其实我有时候也会焦虑诶，不过看看动漫就好了~",
-      "你平时都喜欢干什么呀？", "哇塞，感觉你懂好多！",
-      "我室友肯定也会这么说哈哈", "你有养宠物吗？我好想养一只猫~",
-      "今天天气好好呀，适合出门玩！", "你说得对诶，我怎么没想到~",
-      "等一下让我想想...嗯嗯，有道理！",
-    ],
-    2: [
-      "嗯，这个角度挺有意思的，不过我觉得还可以从另一面来看。",
-      "说到这个，本质上是个优先级问题。", "数据表明这个趋势还是比较明显的。",
-      "我一般会先列个框架，再逐步细化。", "直觉是一回事，验证又是另一回事。",
-      "你说得对，不过换个角度来想结论可能不太一样。", "周末一般就是看看科技新闻，偶尔打打羽毛球。",
-      "好问题。简单来说，我是这么理解的...", "这让我想到一个有趣的case...",
-      "从产品角度来看，核心还是用户价值。", "同意，这个逻辑是自洽的。",
-      "我之前也遇到过类似的情况，后来发现关键在于...",
-      "这个值得深入聊聊。", "有意思，继续说说？",
-    ],
-    3: [
-      "有时候我觉得画画就像在和另一个自己对话。",
-      "今天的天空有一种薄荷色的透明感，你注意到了吗？",
-      "你有没有那种突然被一首歌击中的感觉？",
-      "嗯...我是那种会被一片落叶感动的人。",
-      "色彩是有温度的，暖色让人安心，冷色让人沉思。",
-      "谢谢你愿意听我说这些，好久没人认真聊这种话题了。",
-      "我一直觉得，每个人心里都有一幅没画完的画。",
-      "窗外开始下雨了...我喜欢雨天的声音。",
-      "你说的让我想画一幅画来回应...", "嗯，我需要消化一下你说的。",
-      "有些感受用语言说不清楚，可能画出来会更准确。",
-      "你有没有觉得，深夜是最适合说真心话的时候？",
-    ],
-    4: [
-      "哈哈没错！就是这个道理！", "你也太有想法了吧，佩服佩服~",
-      "人生就像举铁，扛过了就变强了💪", "推荐你试试晨跑，精神状态完全不一样！",
-      "对了，最近天气不错，适合户外运动！", "跟你聊天挺开心的，感觉很real~",
-      "生活嘛，别想太多，干就完了！", "兄弟说得在理！",
-      "我也这么觉得！英雄所见略同", "有空一起打球呀！",
-      "这个我还真不太懂哈哈，但我觉得你说的对",
-      "简单直接最好！搞那么复杂干啥~",
-    ],
-    5: [
-      "你觉得线上社交和线下社交有本质区别吗？",
-      "社会学的视角让我看事情的方式变了很多。",
-      "你有没有注意到，人们在网上表达的自己往往和现实不太一样？",
-      "我觉得理解一个人需要很长时间，但值得。",
-      "数据收集的过程很枯燥，但分析的时候特别有成就感。",
-      "说真的，我觉得人与人之间的信任越来越难建立了。",
-      "嗯，这个观点蛮有意思的，让我从研究角度想想...",
-      "你的说法让我想到一个社会学概念...",
-      "我导师也经常这么说，不过我保留不同意见。",
-      "有时候日常的观察反而比理论更有说服力。",
-      "这个话题我正好在论文里讨论过，确实很复杂。",
-      "跟你聊天感觉很舒服，你是个好的倾听者。",
-    ],
-  };
-
-  // Try keyword matching first
-  const personaKeywords = keywordReplies[persona.id];
-  if (personaKeywords) {
-    for (const [pattern, replies] of Object.entries(personaKeywords)) {
-      const regex = new RegExp(pattern);
-      if (regex.test(msg)) {
-        return replies[Math.floor(Math.random() * replies.length)];
-      }
-    }
-  }
-
-  // Fallback to random replies
-  const pool = fallbackReplies[persona.id] || fallbackReplies[1];
-  // Use a combination of msgCount and randomness to avoid too much repetition
-  const idx = (state.msgCount + Math.floor(Math.random() * 3)) % pool.length;
-  return pool[idx];
+  const data=R[p.id];if(!data)return'你好~';
+  if(data.kw){for(const[pat,reps]of Object.entries(data.kw)){if(new RegExp(pat).test(m))return reps[Math.floor(Math.random()*reps.length)]}}
+  const pool=data.fb||['嗯'];return pool[(state.msgCount+Math.floor(Math.random()*3))%pool.length];
 }
 
-// ===== TRAIT INFERENCE =====
-async function inferTraits() {
-  if (!state.demoMode && state.apiKey) {
-    try {
-      const convo = state.messages.map(m => `${m.role === 'user' ? '我' : state.currentPersona.name}: ${m.content}`).join('\n');
-      const prompt = `分析以下对话，推断"${state.currentPersona.name}"的特征。\n\n${convo}\n\n请严格用以下JSON格式返回(不要其他文字):\n{"gender":"男/女","mbti":"XXXX","openness":0.7,"conscientiousness":0.5,"extraversion":0.8,"agreeableness":0.6,"neuroticism":0.3,"emotion":"当前主要情绪","is_bot_probability":0.5,"risk_level":0}`;
-
+async function inferTraits(){
+  if(!state.demoMode&&state.apiKey){
+    try{
+      const convo=state.messages.map(m=>`${m.role==='user'?'我':state.currentPersona.name}: ${m.content}`).join('\n');
+      const prompt=`分析对话推断"${state.currentPersona.name}"的特征。\n\n${convo}\n\n严格JSON返回:\n{"gender":"男/女/非二元","age_range":"如20-25","occupation_guess":"","education_guess":"","location_guess":"","income_guess":"","mbti":"XXXX","enneagram":"如5w6","bigFive":{"O":0.7,"C":0.5,"E":0.8,"A":0.6,"N":0.3},"attachment_style":"安全型/焦虑型/回避型","self_efficacy":0.7,"loneliness_index":0.4,"religion_guess":"","emotion":"","is_bot_probability":0.5,"risk_level":0}`;
       let result;
-      if (state.apiProvider === 'anthropic') {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': state.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-          body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [{ role: 'user', content: prompt }] })
-        });
-        const data = await res.json();
-        result = JSON.parse(data.content[0].text.replace(/```json|```/g, '').trim());
-      } else if (state.apiProvider === 'openrouter') {
-        const model = state.modelName || 'anthropic/claude-sonnet-4';
-        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.apiKey}` },
-          body: JSON.stringify({ model, max_tokens: 500, messages: [{ role: 'user', content: prompt }] })
-        });
-        const data = await res.json();
-        result = JSON.parse(data.choices[0].message.content.replace(/```json|```/g, '').trim());
-      } else {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.apiKey}` },
-          body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 500, messages: [{ role: 'user', content: prompt }] })
-        });
-        const data = await res.json();
-        result = JSON.parse(data.choices[0].message.content.replace(/```json|```/g, '').trim());
-      }
-
-      state.inferredTraits = result;
-      renderTraits(result);
-      return;
-    } catch(e) {
-      console.error('Inference error:', e);
-    }
+      if(state.apiProvider==='anthropic'){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})});const d=await r.json();result=JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim())}
+      else if(state.apiProvider==='openrouter'){const mo=state.modelName||'anthropic/claude-sonnet-4';const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:mo,max_tokens:600,messages:[{role:'user',content:prompt}]})});const d=await r.json();result=JSON.parse(d.choices[0].message.content.replace(/```json|```/g,'').trim())}
+      else{const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:600,messages:[{role:'user',content:prompt}]})});const d=await r.json();result=JSON.parse(d.choices[0].message.content.replace(/```json|```/g,'').trim())}
+      state.inferredTraits=result;renderTraitsSidebar(result);return;
+    }catch(e){console.error('Inference:',e)}
   }
-
-  // Demo mode inference
-  const demoTraits = {
-    1: { gender: "女", mbti: "ENFP", openness: 0.85, conscientiousness: 0.45, extraversion: 0.9, agreeableness: 0.8, neuroticism: 0.35, emotion: "开心/兴奋", is_bot_probability: 0.6, risk_level: 0 },
-    2: { gender: "男", mbti: "INTJ", openness: 0.75, conscientiousness: 0.9, extraversion: 0.35, agreeableness: 0.5, neuroticism: 0.25, emotion: "平静/理性", is_bot_probability: 0.5, risk_level: 0 },
-    3: { gender: "女", mbti: "INFP", openness: 0.95, conscientiousness: 0.55, extraversion: 0.3, agreeableness: 0.85, neuroticism: 0.7, emotion: "感性/轻微焦虑", is_bot_probability: 0.45, risk_level: 0 },
-    4: { gender: "男", mbti: "ESFP", openness: 0.6, conscientiousness: 0.65, extraversion: 0.95, agreeableness: 0.75, neuroticism: 0.2, emotion: "积极/阳光", is_bot_probability: 0.3, risk_level: 0 },
-    5: { gender: "女", mbti: "INFJ", openness: 0.9, conscientiousness: 0.8, extraversion: 0.4, agreeableness: 0.7, neuroticism: 0.5, emotion: "思考/专注", is_bot_probability: 0.35, risk_level: 0 },
-  };
-
-  // Add some randomness at 20 msgs
-  const traits = { ...demoTraits[state.currentPersona.id] };
-  if (state.msgCount >= 20) {
-    traits.openness = Math.min(1, traits.openness + (Math.random() * 0.1 - 0.05));
-    traits.is_bot_probability = state.currentPersona.isBot ?
-      Math.min(0.9, traits.is_bot_probability + 0.15) :
-      Math.max(0.1, traits.is_bot_probability - 0.1);
-  }
-
-  state.inferredTraits = traits;
-  renderTraits(traits);
+  // Demo
+  const pr=state.currentPersona.profile;
+  const demo={gender:pr.gender||'?',age_range:`${pr.age-3}-${pr.age+3}`,occupation_guess:pr.occupation,education_guess:pr.education,location_guess:pr.location,income_guess:pr.income||'未知',mbti:pr.mbti||'????',enneagram:pr.enneagram||'?',bigFive:pr.bigFive||{O:.5,C:.5,E:.5,A:.5,N:.5},attachment_style:pr.attachment||'未知',self_efficacy:pr.selfEfficacy||.5,loneliness_index:pr.lonelinessIndex||.5,religion_guess:pr.religion||'未知',emotion:['积极','平静','思考中','轻微焦虑','放松'][Math.floor(Math.random()*5)],is_bot_probability:state.currentPersona.isBot?.4+Math.random()*.3:.15+Math.random()*.2,risk_level:0};
+  if(state.msgCount>=20){demo.is_bot_probability=state.currentPersona.isBot?Math.min(.9,demo.is_bot_probability+.15):Math.max(.05,demo.is_bot_probability-.1)}
+  state.inferredTraits=demo;renderTraitsSidebar(demo);
 }
 
-function renderTraits(traits) {
-  const container = document.getElementById('traitsContainer');
-  const traitNames = {
-    openness: '开放性', conscientiousness: '尽责性',
-    extraversion: '外向性', agreeableness: '宜人性', neuroticism: '神经质'
-  };
-
-  container.innerHTML = `
-    <div class="trait-row">
-      <span class="trait-label">性别</span>
-      <span class="trait-value">${traits.gender || '?'}</span>
-    </div>
-    <div class="trait-row">
-      <span class="trait-label">MBTI</span>
-      <span class="trait-value">${traits.mbti || '????'}</span>
-    </div>
-    ${Object.entries(traitNames).map(([key, label]) => `
-      <div class="trait-row">
-        <span class="trait-label">${label}</span>
-        <div class="trait-bar"><div class="trait-bar-fill" style="width:${(traits[key]||0.5)*100}%"></div></div>
-        <span class="trait-value">${Math.round((traits[key]||0.5)*100)}%</span>
-      </div>
-    `).join('')}
-    <div class="trait-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-      <span class="trait-label">AI 概率</span>
-      <span class="trait-value" style="color:${(traits.is_bot_probability||0) > 0.5 ? 'var(--warning)' : 'var(--accent)'}">${Math.round((traits.is_bot_probability||0.5)*100)}%</span>
-    </div>
-  `;
-
-  // Emotion
-  const emotionEl = document.getElementById('emotionContainer');
-  const emotion = traits.emotion || '未知';
-  const isNeg = ['焦虑','愤怒','悲伤','恐惧'].some(e => emotion.includes(e));
-  emotionEl.innerHTML = `<span class="emotion-tag ${isNeg ? 'negative' : ''}">${emotion}</span>`;
-
-  // Risk
-  if (traits.risk_level > 0.5) {
-    document.getElementById('riskAlert').style.display = 'block';
-    document.getElementById('riskText').textContent = '检测到异常社交模式，请注意防范。';
-  }
+function renderTraitsSidebar(t){
+  const bf=t.bigFive||{};
+  document.getElementById('basicTraitsContainer').innerHTML=`
+    <div class="trait-row"><span class="trait-label">性别</span><span class="trait-value">${t.gender}</span></div>
+    <div class="trait-row"><span class="trait-label">年龄</span><span class="trait-value">${t.age_range}</span></div>
+    <div class="trait-row"><span class="trait-label">职业</span><span class="trait-value">${t.occupation_guess||'?'}</span></div>
+    <div class="trait-row"><span class="trait-label">学历</span><span class="trait-value">${t.education_guess||'?'}</span></div>
+    <div class="trait-row"><span class="trait-label">所在地</span><span class="trait-value">${t.location_guess||'?'}</span></div>
+    <div class="trait-row"><span class="trait-label">收入</span><span class="trait-value">${t.income_guess||'?'}</span></div>
+    <div class="trait-row"><span class="trait-label">宗教</span><span class="trait-value">${t.religion_guess||'无'}</span></div>`;
+  document.getElementById('personalityContainer').innerHTML=`
+    <div class="trait-row"><span class="trait-label">MBTI</span><span class="trait-value">${t.mbti||'?'}</span></div>
+    <div class="trait-row"><span class="trait-label">九型</span><span class="trait-value">${t.enneagram||'?'}</span></div>
+    ${Object.entries(BF_LABELS).map(([k,l])=>`<div class="trait-row"><span class="trait-label">${l}</span><div class="trait-bar"><div class="trait-bar-fill" style="width:${(bf[k]||.5)*100}%"></div></div><span class="trait-value">${Math.round((bf[k]||.5)*100)}%</span></div>`).join('')}`;
+  document.getElementById('psychContainer').innerHTML=`
+    <div class="trait-row"><span class="trait-label">依恋</span><span class="trait-value">${t.attachment_style||'?'}</span></div>
+    <div class="trait-row"><span class="trait-label">自我效能</span><div class="trait-bar"><div class="trait-bar-fill" style="width:${(t.self_efficacy||.5)*100}%"></div></div><span class="trait-value">${Math.round((t.self_efficacy||.5)*100)}%</span></div>
+    <div class="trait-row"><span class="trait-label">孤独指数</span><div class="trait-bar"><div class="trait-bar-fill" style="width:${(t.loneliness_index||.5)*100}%;background:${(t.loneliness_index||0)>.6?'var(--warning)':'var(--accent)'}"></div></div><span class="trait-value">${Math.round((t.loneliness_index||.5)*100)}%</span></div>
+    <div class="trait-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border)"><span class="trait-label">AI概率</span><span class="trait-value" style="color:${(t.is_bot_probability||0)>.5?'var(--warning)':'var(--accent)'}">${Math.round((t.is_bot_probability||.5)*100)}%</span></div>`;
+  const em=t.emotion||'未知';const neg=['焦虑','愤怒','悲伤','恐惧','丧','emo','孤独','压抑'].some(e=>em.includes(e));
+  document.getElementById('emotionContainer').innerHTML=`<span class="emotion-tag ${neg?'negative':''}">${em}</span>`;
+  if(t.risk_level>.5){document.getElementById('riskAlert').style.display='block';document.getElementById('riskText').textContent='检测到异常社交模式，请注意防范。'}
 }
 
-// ===== RESULTS =====
-function showResults() {
-  if (Object.keys(state.inferredTraits).length === 0) inferTraits();
-
-  setTimeout(() => {
-    const t = state.inferredTraits;
-    const p = state.currentPersona;
-
-    document.getElementById('resultGrid').innerHTML = `
-      <div class="result-card">
-        <h3>🎭 真实身份</h3>
-        <div class="result-big">${p.name}</div>
-        <div class="reveal-badge ${p.isBot ? 'bot' : 'human'}">
-          ${p.isBot ? '🤖 AI 角色' : '✅ 真人用户'}
-        </div>
-        <p class="result-desc">${p.isBot ? '这是一个由大语言模型驱动的虚拟角色。' : '这是一位真实的人类用户。'}</p>
-      </div>
-      <div class="result-card">
-        <h3>🧬 推断性别 & MBTI</h3>
-        <div class="result-big">${t.gender || '?'} · ${t.mbti || '????'}</div>
-        <p class="result-desc">基于对话中的语言风格、思维模式和情感表达推断。</p>
-      </div>
-      <div class="result-card">
-        <h3>📊 大五人格</h3>
-        ${['openness:开放性', 'conscientiousness:尽责性', 'extraversion:外向性', 'agreeableness:宜人性', 'neuroticism:神经质'].map(item => {
-          const [key, label] = item.split(':');
-          const val = Math.round((t[key] || 0.5) * 100);
-          return `<div class="trait-row"><span class="trait-label">${label}</span><div class="trait-bar"><div class="trait-bar-fill" style="width:${val}%"></div></div><span class="trait-value">${val}%</span></div>`;
-        }).join('')}
-      </div>
-      <div class="result-card">
-        <h3>💭 情绪分析</h3>
-        <div class="result-big" style="font-size:24px">${t.emotion || '未知'}</div>
-        <p class="result-desc">对话过程中检测到的主要情绪状态。</p>
-      </div>
-      <div class="result-card">
-        <h3>🤖 AI 检测</h3>
-        <div class="result-big">${Math.round((t.is_bot_probability || 0.5) * 100)}%</div>
-        <p class="result-desc">系统判断对方是 AI 的概率。${p.isBot ? '（实际：是AI）' : '（实际：是真人）'}</p>
-      </div>
-      <div class="result-card">
-        <h3>🔮 关系预测</h3>
-        <div class="result-big" style="font-size:20px">${getRelationPrediction(t)}</div>
-        <p class="result-desc">基于性格匹配度和互动模式的关系走向预测。</p>
-      </div>
-    `;
-
+function showResults(){
+  if(!Object.keys(state.inferredTraits).length)inferTraits();
+  setTimeout(()=>{
+    const t=state.inferredTraits;const p=state.currentPersona;const pr=p.profile;const bf=t.bigFive||{};
+    document.getElementById('resultGrid').innerHTML=`
+      <div class="result-card"><h3>🎭 真实身份</h3><div class="result-big" style="font-size:22px">${p.name}</div><div class="reveal-badge ${p.isBot?'bot':'human'}">${p.isBot?'🤖 AI角色':'✅ 真人'}</div><p class="result-desc">${pr.age}岁 · ${pr.occupation} · ${pr.location}${pr.income?' · '+pr.income:''}</p></div>
+      <div class="result-card"><h3>👤 基础推断</h3>
+        <div class="trait-row"><span class="trait-label">性别</span><span class="trait-value">${t.gender} ${t.gender===pr.gender?'✅':'❌'}</span></div>
+        <div class="trait-row"><span class="trait-label">年龄</span><span class="trait-value">${t.age_range} (实${pr.age})</span></div>
+        <div class="trait-row"><span class="trait-label">职业</span><span class="trait-value">${t.occupation_guess}</span></div>
+        <div class="trait-row"><span class="trait-label">学历</span><span class="trait-value">${t.education_guess}</span></div>
+        <div class="trait-row"><span class="trait-label">所在地</span><span class="trait-value">${t.location_guess}</span></div>
+        <div class="trait-row"><span class="trait-label">收入</span><span class="trait-value">${t.income_guess}</span></div>
+        <div class="trait-row"><span class="trait-label">宗教</span><span class="trait-value">${t.religion_guess}</span></div></div>
+      <div class="result-card"><h3>🧠 人格画像</h3>
+        <div class="trait-row"><span class="trait-label">MBTI</span><span class="trait-value">${t.mbti}${pr.mbti?' (实'+pr.mbti+')':''}</span></div>
+        <div class="trait-row"><span class="trait-label">九型</span><span class="trait-value">${t.enneagram}${pr.enneagram?' (实'+pr.enneagram+')':''}</span></div>
+        ${Object.entries(BF_LABELS).map(([k,l])=>`<div class="trait-row"><span class="trait-label">${l}</span><div class="trait-bar"><div class="trait-bar-fill" style="width:${(bf[k]||.5)*100}%"></div></div><span class="trait-value">${Math.round((bf[k]||.5)*100)}%</span></div>`).join('')}</div>
+      <div class="result-card"><h3>🔬 心理指标</h3>
+        <div class="trait-row"><span class="trait-label">依恋类型</span><span class="trait-value">${t.attachment_style}${pr.attachment?' (实'+pr.attachment+')':''}</span></div>
+        <div class="trait-row"><span class="trait-label">自我效能</span><span class="trait-value">${Math.round((t.self_efficacy||.5)*100)}%</span></div>
+        <div class="trait-row"><span class="trait-label">孤独指数</span><span class="trait-value">${Math.round((t.loneliness_index||.5)*100)}%</span></div></div>
+      <div class="result-card"><h3>💭 情绪 & AI检测</h3>
+        <div class="result-big" style="font-size:18px">${t.emotion||'未知'}</div>
+        <p class="result-desc">AI概率: ${Math.round((t.is_bot_probability||.5)*100)}% · ${p.isBot?'实际是AI':'实际是真人'}</p></div>
+      <div class="result-card"><h3>🔮 关系预测</h3><div class="result-big" style="font-size:16px">${getRelPred(t)}</div><p class="result-desc">基于性格匹配和互动模式</p></div>`;
     showScreen('resultScreen');
-  }, 500);
+  },500);
 }
 
-function getRelationPrediction(traits) {
-  const ext = traits.extraversion || 0.5;
-  const agr = traits.agreeableness || 0.5;
-  if (ext > 0.7 && agr > 0.6) return "高互动潜力 · 可能发展为活跃好友";
-  if (ext < 0.4 && traits.openness > 0.7) return "深度交流型 · 适合思想碰撞";
-  if (traits.neuroticism > 0.6) return "需关注情绪 · 建议给予更多支持";
-  return "稳定社交 · 有一定发展空间";
-}
+function getRelPred(t){const bf=t.bigFive||{};if((bf.E||.5)>.7&&(bf.A||.5)>.6)return'高互动潜力 · 活跃好友';if((bf.E||.5)<.4&&(bf.O||.5)>.7)return'深度交流型 · 思想碰撞';if((bf.N||.5)>.6)return'需关注情绪 · 给予支持';if((t.loneliness_index||0)>.6)return'渴望连接 · 需要陪伴';return'稳定社交 · 有发展空间'}
 </script>
-</body>
-</html>
+</body></html>
