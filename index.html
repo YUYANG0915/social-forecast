@@ -165,13 +165,6 @@ function startChat(pid){
 
 function getGreeting(p){const a=p.profile.age;const g=[`嗨！我是${p.name}，很高兴认识你~`,`你好呀，来聊聊天吧`,`Hi！来认识新朋友~`];if(a<20)return['嗯 hi','你好','来了'][Math.floor(Math.random()*3)];if(a>=60)return[`你好啊，我是${p.name}。`,`你好你好，来聊天的？好好好。`][Math.floor(Math.random()*2)];return g[Math.floor(Math.random()*3)]}
 
-function renderSidebar(){document.getElementById('sidebar').innerHTML=`
-<div class="sidebar-card"><h4>📊 推断进度</h4><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-label" id="progressLabel">0/30</div></div>
-<div class="sidebar-card"><h4>👤 基础特征</h4><div id="basicTraitsContainer"><p style="font-size:11px;color:var(--text-dim)">10句后开始推断...</p></div></div>
-<div class="sidebar-card"><h4>🧠 人格维度</h4><div id="personalityContainer"><p style="font-size:11px;color:var(--text-dim)">等待数据...</p></div></div>
-<div class="sidebar-card"><h4>🔬 心理指标</h4><div id="psychContainer"><p style="font-size:11px;color:var(--text-dim)">等待数据...</p></div></div>
-<div class="sidebar-card"><h4>💭 情绪</h4><div id="emotionContainer"><p style="font-size:11px;color:var(--text-dim)">分析中...</p></div></div>
-<div class="sidebar-card risk-alert" id="riskAlert"><h4>⚠ 风险预警</h4><p id="riskText"></p></div>`}
 
 function addMessage(t,s){const d=document.createElement('div');d.className=`msg ${s}`;d.textContent=t;const c=document.getElementById('messages');c.appendChild(d);c.scrollTop=c.scrollHeight;state.messages.push({role:s==='me'?'user':'assistant',content:t});if(s==='me'){state.msgCount++;updateProgress()}}
 
@@ -217,34 +210,55 @@ async function demoReply(u){
 }
 
 async function inferTraits(){
+  const userMsgs=state.messages.filter(m=>m.role==='user').map(m=>m.content);
+  const allConvo=state.messages.map(m=>`${m.role==='user'?'用户':state.currentPersona.name}: ${m.content}`).join('\n');
   if(!state.demoMode&&state.apiKey){
     try{
-      const convo=state.messages.map(m=>`${m.role==='user'?'我':state.currentPersona.name}: ${m.content}`).join('\n');
-      const prompt=`分析对话推断"${state.currentPersona.name}"的特征。\n\n${convo}\n\n严格JSON返回:\n{"gender":"男/女/非二元","age_range":"如20-25","occupation_guess":"","education_guess":"","location_guess":"","income_guess":"","mbti":"XXXX","enneagram":"如5w6","bigFive":{"O":0.7,"C":0.5,"E":0.8,"A":0.6,"N":0.3},"attachment_style":"安全型/焦虑型/回避型","self_efficacy":0.7,"loneliness_index":0.4,"religion_guess":"","emotion":"","is_bot_probability":0.5,"risk_level":0}`;
+      const prompt=`你是社交心理分析专家。根据以下对话中【用户】的所有发言，推断【用户本人】（不是对话对象）的多维特征画像。\n\n对话记录：\n${allConvo}\n\n分析要求：\n1. 只分析"用户"的发言来推断用户本人特征\n2. 从用词习惯、话题选择、表达方式、情感倾向、价值观综合分析\n3. 注意沟通风格(主动/被动、理性/感性)\n\n严格JSON返回(无其他文字)：\n{"gender":"男/女/未知","age_range":"如20-25","occupation_guess":"","education_guess":"","location_guess":"","income_guess":"","mbti":"XXXX","enneagram":"如5w6","bigFive":{"O":0.7,"C":0.5,"E":0.8,"A":0.6,"N":0.3},"attachment_style":"安全型/焦虑型/回避型/混乱型","self_efficacy":0.7,"loneliness_index":0.4,"religion_guess":"","emotion":"用户当前情绪","communication_style":"沟通风格(如直接热情型)","social_tendency":"社交倾向(如主动社交型)","risk_level":0}`;
       let result;
-      if(state.apiProvider==='anthropic'){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})});const d=await r.json();result=JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim())}
-      else if(state.apiProvider==='openrouter'){const mo=state.modelName||'anthropic/claude-sonnet-4';const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:mo,max_tokens:600,messages:[{role:'user',content:prompt}]})});const d=await r.json();result=JSON.parse(d.choices[0].message.content.replace(/```json|```/g,'').trim())}
-      else{const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:600,messages:[{role:'user',content:prompt}]})});const d=await r.json();result=JSON.parse(d.choices[0].message.content.replace(/```json|```/g,'').trim())}
+      if(state.apiProvider==='anthropic'){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});const d=await r.json();result=JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim())}
+      else if(state.apiProvider==='openrouter'){const mo=state.modelName||'anthropic/claude-sonnet-4';const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:mo,max_tokens:800,messages:[{role:'user',content:prompt}]})});const d=await r.json();result=JSON.parse(d.choices[0].message.content.replace(/```json|```/g,'').trim())}
+      else{const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:800,messages:[{role:'user',content:prompt}]})});const d=await r.json();result=JSON.parse(d.choices[0].message.content.replace(/```json|```/g,'').trim())}
       state.inferredTraits=result;renderTraitsSidebar(result);return;
     }catch(e){console.error('Inference:',e)}
   }
-  // Demo
-  const pr=state.currentPersona.profile;
-  const demo={gender:pr.gender||'?',age_range:`${pr.age-3}-${pr.age+3}`,occupation_guess:pr.occupation,education_guess:pr.education,location_guess:pr.location,income_guess:pr.income||'未知',mbti:pr.mbti||'????',enneagram:pr.enneagram||'?',bigFive:pr.bigFive||{O:.5,C:.5,E:.5,A:.5,N:.5},attachment_style:pr.attachment||'未知',self_efficacy:pr.selfEfficacy||.5,loneliness_index:pr.lonelinessIndex||.5,religion_guess:pr.religion||'未知',emotion:['积极','平静','思考中','轻微焦虑','放松'][Math.floor(Math.random()*5)],is_bot_probability:state.currentPersona.isBot?.4+Math.random()*.3:.15+Math.random()*.2,risk_level:0};
-  if(state.msgCount>=20){demo.is_bot_probability=state.currentPersona.isBot?Math.min(.9,demo.is_bot_probability+.15):Math.max(.05,demo.is_bot_probability-.1)}
+  // Demo: heuristic analysis of user messages
+  const all=userMsgs.join(' ').toLowerCase();const len=userMsgs.reduce((s,m)=>s+m.length,0);const avg=len/(userMsgs.length||1);
+  const hasEmoji=/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}]/u.test(all);
+  const qCnt=(all.match(/\?|？/g)||[]).length;const exCnt=(all.match(/!|！/g)||[]).length;
+  const hasEng=/[a-zA-Z]{3,}/.test(all);const hasFormal=/因此|所以|首先|其次|然而|认为/.test(all);
+  const hasCasual=/哈哈|嘿嘿|嘻嘻|呀|呢|啦|hhh|233|lol/.test(all);
+  const hasEmo=/喜欢|感觉|觉得|开心|难过|焦虑|孤独|压力|幸福/.test(all);
+  let E=.5,A=.5,O=.5,C=.5,N=.4;
+  if(avg>30)O+=.15;if(avg<10)E-=.1;if(hasEmoji||hasCasual){E+=.15;A+=.1}if(hasFormal){C+=.2;E-=.1}if(qCnt>3)O+=.1;if(exCnt>3)E+=.15;if(hasEmo)N+=.15;if(hasEng)O+=.1;
+  [E,A,O,C,N]=[E,A,O,C,N].map(v=>Math.max(.05,Math.min(.95,v)));
+  const mbti=`${E>.55?'E':'I'}${O>.55?'N':'S'}${A>.55?'F':'T'}${C>.55?'J':'P'}`;
+  const comm=E>.6?(hasFormal?'热情有条理':'直接热情型'):(hasFormal?'理性分析型':'含蓄观察型');
+  const social=E>.6?'主动社交型':(qCnt>2?'好奇探索型':'被动社交型');
+  let emotion='平和';if(/开心|快乐|幸福/.test(all))emotion='积极愉悦';else if(/焦虑|压力|累/.test(all))emotion='有压力感';else if(hasCasual)emotion='轻松活跃';else if(hasFormal)emotion='冷静理性';
+  const demo={gender:'未知',age_range:'分析中',occupation_guess:'分析中',education_guess:hasFormal||hasEng?'本科及以上(推测)':'待更多数据',location_guess:'未知',income_guess:'未知',mbti:mbti,enneagram:'待分析',bigFive:{O:+O.toFixed(2),C:+C.toFixed(2),E:+E.toFixed(2),A:+A.toFixed(2),N:+N.toFixed(2)},attachment_style:A>.6?'偏安全型':'待更多数据',self_efficacy:C>.6?.7:.5,loneliness_index:E<.4?.6:.35,religion_guess:'未知',emotion,communication_style:comm,social_tendency:social,risk_level:0};
   state.inferredTraits=demo;renderTraitsSidebar(demo);
 }
+
+function renderSidebar(){document.getElementById('sidebar').innerHTML=`
+<div class="sidebar-card"><h4>📊 推断进度</h4><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-label" id="progressLabel">0/30</div></div>
+<div class="sidebar-card"><h4>👤 你的基础画像</h4><div id="basicTraitsContainer"><p style="font-size:11px;color:var(--text-dim)">10句后开始推断你的特征...</p></div></div>
+<div class="sidebar-card"><h4>🧠 你的人格维度</h4><div id="personalityContainer"><p style="font-size:11px;color:var(--text-dim)">等待数据...</p></div></div>
+<div class="sidebar-card"><h4>🔬 你的心理指标</h4><div id="psychContainer"><p style="font-size:11px;color:var(--text-dim)">等待数据...</p></div></div>
+<div class="sidebar-card"><h4>💬 你的沟通风格</h4><div id="commContainer"><p style="font-size:11px;color:var(--text-dim)">分析中...</p></div></div>
+<div class="sidebar-card"><h4>💭 你的情绪</h4><div id="emotionContainer"><p style="font-size:11px;color:var(--text-dim)">分析中...</p></div></div>
+<div class="sidebar-card risk-alert" id="riskAlert"><h4>⚠ 风险预警</h4><p id="riskText"></p></div>`}
 
 function renderTraitsSidebar(t){
   const bf=t.bigFive||{};
   document.getElementById('basicTraitsContainer').innerHTML=`
-    <div class="trait-row"><span class="trait-label">性别</span><span class="trait-value">${t.gender}</span></div>
-    <div class="trait-row"><span class="trait-label">年龄</span><span class="trait-value">${t.age_range}</span></div>
+    <div class="trait-row"><span class="trait-label">性别</span><span class="trait-value">${t.gender||'?'}</span></div>
+    <div class="trait-row"><span class="trait-label">年龄</span><span class="trait-value">${t.age_range||'?'}</span></div>
     <div class="trait-row"><span class="trait-label">职业</span><span class="trait-value">${t.occupation_guess||'?'}</span></div>
     <div class="trait-row"><span class="trait-label">学历</span><span class="trait-value">${t.education_guess||'?'}</span></div>
     <div class="trait-row"><span class="trait-label">所在地</span><span class="trait-value">${t.location_guess||'?'}</span></div>
     <div class="trait-row"><span class="trait-label">收入</span><span class="trait-value">${t.income_guess||'?'}</span></div>
-    <div class="trait-row"><span class="trait-label">宗教</span><span class="trait-value">${t.religion_guess||'无'}</span></div>`;
+    <div class="trait-row"><span class="trait-label">宗教</span><span class="trait-value">${t.religion_guess||'未知'}</span></div>`;
   document.getElementById('personalityContainer').innerHTML=`
     <div class="trait-row"><span class="trait-label">MBTI</span><span class="trait-value">${t.mbti||'?'}</span></div>
     <div class="trait-row"><span class="trait-label">九型</span><span class="trait-value">${t.enneagram||'?'}</span></div>
@@ -252,9 +266,11 @@ function renderTraitsSidebar(t){
   document.getElementById('psychContainer').innerHTML=`
     <div class="trait-row"><span class="trait-label">依恋</span><span class="trait-value">${t.attachment_style||'?'}</span></div>
     <div class="trait-row"><span class="trait-label">自我效能</span><div class="trait-bar"><div class="trait-bar-fill" style="width:${(t.self_efficacy||.5)*100}%"></div></div><span class="trait-value">${Math.round((t.self_efficacy||.5)*100)}%</span></div>
-    <div class="trait-row"><span class="trait-label">孤独指数</span><div class="trait-bar"><div class="trait-bar-fill" style="width:${(t.loneliness_index||.5)*100}%;background:${(t.loneliness_index||0)>.6?'var(--warning)':'var(--accent)'}"></div></div><span class="trait-value">${Math.round((t.loneliness_index||.5)*100)}%</span></div>
-    <div class="trait-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border)"><span class="trait-label">AI概率</span><span class="trait-value" style="color:${(t.is_bot_probability||0)>.5?'var(--warning)':'var(--accent)'}">${Math.round((t.is_bot_probability||.5)*100)}%</span></div>`;
-  const em=t.emotion||'未知';const neg=['焦虑','愤怒','悲伤','恐惧','丧','emo','孤独','压抑'].some(e=>em.includes(e));
+    <div class="trait-row"><span class="trait-label">孤独指数</span><div class="trait-bar"><div class="trait-bar-fill" style="width:${(t.loneliness_index||.5)*100}%;background:${(t.loneliness_index||0)>.6?'var(--warning)':'var(--accent)'}"></div></div><span class="trait-value">${Math.round((t.loneliness_index||.5)*100)}%</span></div>`;
+  document.getElementById('commContainer').innerHTML=`
+    <div class="trait-row"><span class="trait-label">风格</span><span class="trait-value">${t.communication_style||'分析中'}</span></div>
+    <div class="trait-row"><span class="trait-label">倾向</span><span class="trait-value">${t.social_tendency||'分析中'}</span></div>`;
+  const em=t.emotion||'未知';const neg=['焦虑','愤怒','悲伤','恐惧','丧','emo','孤独','压力','压抑'].some(e=>em.includes(e));
   document.getElementById('emotionContainer').innerHTML=`<span class="emotion-tag ${neg?'negative':''}">${em}</span>`;
   if(t.risk_level>.5){document.getElementById('riskAlert').style.display='block';document.getElementById('riskText').textContent='检测到异常社交模式，请注意防范。'}
 }
@@ -264,31 +280,30 @@ function showResults(){
   setTimeout(()=>{
     const t=state.inferredTraits;const p=state.currentPersona;const pr=p.profile;const bf=t.bigFive||{};
     document.getElementById('resultGrid').innerHTML=`
-      <div class="result-card"><h3>🎭 真实身份</h3><div class="result-big" style="font-size:22px">${p.name}</div><div class="reveal-badge ${p.isBot?'bot':'human'}">${p.isBot?'🤖 AI角色':'✅ 真人'}</div><p class="result-desc">${pr.age}岁 · ${pr.occupation} · ${pr.location}${pr.income?' · '+pr.income:''}</p></div>
-      <div class="result-card"><h3>👤 基础推断</h3>
-        <div class="trait-row"><span class="trait-label">性别</span><span class="trait-value">${t.gender} ${t.gender===pr.gender?'✅':'❌'}</span></div>
-        <div class="trait-row"><span class="trait-label">年龄</span><span class="trait-value">${t.age_range} (实${pr.age})</span></div>
-        <div class="trait-row"><span class="trait-label">职业</span><span class="trait-value">${t.occupation_guess}</span></div>
-        <div class="trait-row"><span class="trait-label">学历</span><span class="trait-value">${t.education_guess}</span></div>
-        <div class="trait-row"><span class="trait-label">所在地</span><span class="trait-value">${t.location_guess}</span></div>
-        <div class="trait-row"><span class="trait-label">收入</span><span class="trait-value">${t.income_guess}</span></div>
-        <div class="trait-row"><span class="trait-label">宗教</span><span class="trait-value">${t.religion_guess}</span></div></div>
-      <div class="result-card"><h3>🧠 人格画像</h3>
-        <div class="trait-row"><span class="trait-label">MBTI</span><span class="trait-value">${t.mbti}${pr.mbti?' (实'+pr.mbti+')':''}</span></div>
-        <div class="trait-row"><span class="trait-label">九型</span><span class="trait-value">${t.enneagram}${pr.enneagram?' (实'+pr.enneagram+')':''}</span></div>
+      <div class="result-card"><h3>🎭 对方身份揭晓</h3><div class="result-big" style="font-size:22px">${p.name}</div><div class="reveal-badge ${p.isBot?'bot':'human'}">${p.isBot?'🤖 AI角色':'✅ 真人'}</div><p class="result-desc">${pr.age}岁 · ${pr.occupation} · ${pr.location}${pr.income?' · '+pr.income:''}</p></div>
+      <div class="result-card"><h3>👤 你的基础画像</h3>
+        <div class="trait-row"><span class="trait-label">性别</span><span class="trait-value">${t.gender||'?'}</span></div>
+        <div class="trait-row"><span class="trait-label">年龄段</span><span class="trait-value">${t.age_range||'?'}</span></div>
+        <div class="trait-row"><span class="trait-label">职业推测</span><span class="trait-value">${t.occupation_guess||'?'}</span></div>
+        <div class="trait-row"><span class="trait-label">学历推测</span><span class="trait-value">${t.education_guess||'?'}</span></div>
+        <div class="trait-row"><span class="trait-label">所在地</span><span class="trait-value">${t.location_guess||'?'}</span></div>
+        <div class="trait-row"><span class="trait-label">宗教</span><span class="trait-value">${t.religion_guess||'未知'}</span></div></div>
+      <div class="result-card"><h3>🧠 你的人格画像</h3>
+        <div class="trait-row"><span class="trait-label">MBTI</span><span class="trait-value">${t.mbti||'?'}</span></div>
+        <div class="trait-row"><span class="trait-label">九型</span><span class="trait-value">${t.enneagram||'?'}</span></div>
         ${Object.entries(BF_LABELS).map(([k,l])=>`<div class="trait-row"><span class="trait-label">${l}</span><div class="trait-bar"><div class="trait-bar-fill" style="width:${(bf[k]||.5)*100}%"></div></div><span class="trait-value">${Math.round((bf[k]||.5)*100)}%</span></div>`).join('')}</div>
-      <div class="result-card"><h3>🔬 心理指标</h3>
-        <div class="trait-row"><span class="trait-label">依恋类型</span><span class="trait-value">${t.attachment_style}${pr.attachment?' (实'+pr.attachment+')':''}</span></div>
+      <div class="result-card"><h3>🔬 你的心理指标</h3>
+        <div class="trait-row"><span class="trait-label">依恋类型</span><span class="trait-value">${t.attachment_style||'?'}</span></div>
         <div class="trait-row"><span class="trait-label">自我效能</span><span class="trait-value">${Math.round((t.self_efficacy||.5)*100)}%</span></div>
         <div class="trait-row"><span class="trait-label">孤独指数</span><span class="trait-value">${Math.round((t.loneliness_index||.5)*100)}%</span></div></div>
-      <div class="result-card"><h3>💭 情绪 & AI检测</h3>
+      <div class="result-card"><h3>💬 你的沟通画像</h3>
+        <div class="result-big" style="font-size:16px">${t.communication_style||'未知'}</div>
+        <p class="result-desc">社交倾向: ${t.social_tendency||'未知'}</p></div>
+      <div class="result-card"><h3>💭 你的情绪状态</h3>
         <div class="result-big" style="font-size:18px">${t.emotion||'未知'}</div>
-        <p class="result-desc">AI概率: ${Math.round((t.is_bot_probability||.5)*100)}% · ${p.isBot?'实际是AI':'实际是真人'}</p></div>
-      <div class="result-card"><h3>🔮 关系预测</h3><div class="result-big" style="font-size:16px">${getRelPred(t)}</div><p class="result-desc">基于性格匹配和互动模式</p></div>`;
+        <p class="result-desc">基于你在对话中的表达方式和情感倾向推断</p></div>`;
     showScreen('resultScreen');
   },500);
 }
-
-function getRelPred(t){const bf=t.bigFive||{};if((bf.E||.5)>.7&&(bf.A||.5)>.6)return'高互动潜力 · 活跃好友';if((bf.E||.5)<.4&&(bf.O||.5)>.7)return'深度交流型 · 思想碰撞';if((bf.N||.5)>.6)return'需关注情绪 · 给予支持';if((t.loneliness_index||0)>.6)return'渴望连接 · 需要陪伴';return'稳定社交 · 有发展空间'}
 </script>
 </body></html>
