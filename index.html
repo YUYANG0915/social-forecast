@@ -73,6 +73,28 @@
 .result-desc{font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.6}
 .reveal-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-family:'Space Mono',monospace;margin-top:8px}.reveal-badge.bot{background:#7b2ff722;color:#b57bff;border:1px solid #7b2ff744}.reveal-badge.human{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-glow)}
 .restart-btn{padding:14px 40px;background:var(--gradient-1);border:none;border-radius:12px;color:#0a0b0f;font-weight:700;font-size:15px;cursor:pointer;margin-top:20px}
+.clone-btn{padding:14px 40px;background:var(--gradient-2);border:none;border-radius:12px;color:var(--text-primary);font-weight:700;font-size:15px;cursor:pointer;margin-top:12px;transition:transform .2s}.clone-btn:hover{transform:scale(1.03)}
+/* Clone config form */
+.clone-form{max-width:600px;width:100%;margin:0 auto}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:14px;font-family:inherit;outline:none}.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{min-height:60px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:500px){.form-row{grid-template-columns:1fr}}
+.form-note{font-size:11px;color:var(--text-dim);margin-top:4px;font-style:italic}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:800px;width:100%;margin-bottom:24px}
+@media(max-width:600px){.compare-grid{grid-template-columns:1fr}}
+.compare-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.compare-card.system{border-color:var(--accent)}
+.compare-card.friend{border-color:#b57bff}
+.compare-card h3{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.compare-card.system h3{color:var(--accent)}
+.compare-card.friend h3{color:#b57bff}
+.match-badge{display:inline-block;padding:6px 16px;border-radius:20px;font-size:14px;font-weight:700;font-family:'Space Mono',monospace;margin:12px 0}
+.match-badge.high{background:var(--accent-dim);color:var(--accent)}
+.match-badge.mid{background:#ffa50033;color:#ffa500}
+.match-badge.low{background:var(--warning-dim);color:var(--warning)}
 .bg-glow{position:fixed;width:400px;height:400px;border-radius:50%;filter:blur(120px);opacity:.08;pointer-events:none;z-index:0}.bg-glow-1{top:-100px;right:-100px;background:var(--accent)}.bg-glow-2{bottom:-100px;left:-100px;background:#7b2ff7}
 </style>
 </head>
@@ -112,6 +134,61 @@
 <div class="result-header"><h2>📋 多维分析报告</h2><p>基于30句对话的完整推断</p></div>
 <div class="result-grid" id="resultGrid"></div>
 <button class="restart-btn" onclick="goHome()">🔄 重新开始</button>
+<button class="clone-btn" onclick="showCloneSetup()">🧬 创建我的AI分身 →</button>
+</div>
+
+<!-- CLONE SETUP: Friend customizes their perception -->
+<div class="screen" id="cloneSetupScreen" style="display:none;padding:72px 24px 40px">
+<div style="max-width:700px;margin:0 auto;text-align:center">
+<h2 style="font-family:'Space Mono',monospace;font-size:24px;background:var(--gradient-2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px">🧬 与TA的AI分身聊天</h2>
+<p style="color:var(--text-secondary);font-size:14px;margin-bottom:24px;line-height:1.7">在和AI分身聊天之前，先填写你认为这个人是什么样的。<br>聊完后系统会对比你的预判 vs 系统推断，看你有多了解TA。</p>
+<div class="clone-form" id="cloneForm">
+  <div class="form-row">
+    <div class="form-group"><label>你觉得TA的性别</label><select id="f_gender"><option value="男">男</option><option value="女">女</option><option value="非二元">非二元</option><option value="不确定">不确定</option></select></div>
+    <div class="form-group"><label>你觉得TA的年龄段</label><select id="f_age"><option value="18-24">18-24</option><option value="25-30">25-30</option><option value="31-40">31-40</option><option value="41-50">41-50</option><option value="51-60">51-60</option><option value="60+">60+</option></select></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>你觉得TA的MBTI</label><input type="text" id="f_mbti" placeholder="如 ENFP（不确定可留空）"/></div>
+    <div class="form-group"><label>你觉得TA的职业</label><input type="text" id="f_occupation" placeholder="如 程序员、学生..."/></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>外向 ← → 内向</label><input type="range" id="f_EI" min="0" max="100" value="50" style="width:100%"/></div>
+    <div class="form-group"><label>理性 ← → 感性</label><input type="range" id="f_TF" min="0" max="100" value="50" style="width:100%"/></div>
+  </div>
+  <div class="form-group"><label>用几句话描述你觉得TA是什么样的人</label><textarea id="f_description" placeholder="比如：我觉得TA是一个比较内向但很有想法的人，喜欢深度思考..."></textarea></div>
+  <p class="form-note">💡 填完后你将与AI分身聊天20句，最后对比你的预判和系统推断</p>
+  <button class="modal-btn" style="margin-top:16px" onclick="startCloneChat()">开始与AI分身聊天 →</button>
+</div>
+</div>
+</div>
+
+<!-- CLONE CHAT: Chat with the AI avatar -->
+<div class="screen chat-screen" id="cloneChatScreen">
+<div class="chat-main">
+<div class="chat-header">
+<div class="chat-header-avatar" id="cloneAvatar">🧬</div>
+<div class="chat-header-info"><h3 id="cloneName">AI分身</h3><p id="cloneSubtitle">基于系统推断生成</p></div>
+<button class="chat-back" onclick="endCloneChat()">结束聊天 →</button>
+</div>
+<div class="messages" id="cloneMessages"><div class="msg-counter" id="cloneMsgCounter">对话进度: 0/20</div></div>
+<div class="typing-indicator" id="cloneTyping"><span></span><span></span><span></span></div>
+<div class="chat-input-area"><input class="chat-input" id="cloneChatInput" placeholder="跟AI分身聊聊..."/><button class="send-btn" onclick="sendCloneMessage()">➤</button></div>
+</div>
+<div class="sidebar">
+<div class="sidebar-card"><h4>🧬 AI分身模式</h4><p style="font-size:12px;color:var(--text-secondary);line-height:1.6">你正在与系统根据用户画像创建的AI分身聊天。聊完20句后将对比你的预判。</p></div>
+<div class="sidebar-card"><h4>📊 进度</h4><div class="progress-bar"><div class="progress-fill" id="cloneProgressFill"></div></div><div class="progress-label" id="cloneProgressLabel">0/20</div></div>
+</div>
+</div>
+
+<!-- COMPARE: Friend's guess vs system inference -->
+<div class="screen" id="compareScreen" style="display:none;padding:72px 24px 40px">
+<div style="max-width:800px;margin:0 auto;text-align:center">
+<h2 style="font-family:'Space Mono',monospace;font-size:24px;background:var(--gradient-2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px">🔍 画像对比</h2>
+<p style="color:var(--text-secondary);font-size:14px;margin-bottom:8px">你的预判 vs 系统推断</p>
+<div id="matchBadge"></div>
+<div class="compare-grid" id="compareGrid"></div>
+<button class="restart-btn" onclick="goHome()">🔄 返回首页</button>
+</div>
 </div>
 <script>
 const PERSONAS=[
@@ -304,6 +381,142 @@ function showResults(){
         <p class="result-desc">基于你在对话中的表达方式和情感倾向推断</p></div>`;
     showScreen('resultScreen');
   },500);
+}
+
+// =============================================
+// CLONE / AI AVATAR SYSTEM
+// =============================================
+let cloneState={messages:[],msgCount:0,friendGuess:{},clonePersonality:''};
+
+function showCloneSetup(){
+  // Generate the clone personality from inferred traits
+  const t=state.inferredTraits;
+  cloneState.clonePersonality=buildClonePrompt(t);
+  showScreen('cloneSetupScreen');
+}
+
+function buildClonePrompt(t){
+  return `你现在要扮演一个真实的人。以下是系统通过对话分析推断出的这个人的画像：
+- 性别: ${t.gender||'未知'}
+- 年龄段: ${t.age_range||'未知'}
+- 职业: ${t.occupation_guess||'未知'}
+- 学历: ${t.education_guess||'未知'}
+- 所在地: ${t.location_guess||'未知'}
+- MBTI: ${t.mbti||'未知'}
+- 九型人格: ${t.enneagram||'未知'}
+- 大五人格: 开放性${Math.round((t.bigFive?.O||.5)*100)}%, 尽责性${Math.round((t.bigFive?.C||.5)*100)}%, 外向性${Math.round((t.bigFive?.E||.5)*100)}%, 宜人性${Math.round((t.bigFive?.A||.5)*100)}%, 神经质${Math.round((t.bigFive?.N||.5)*100)}%
+- 依恋类型: ${t.attachment_style||'未知'}
+- 沟通风格: ${t.communication_style||'未知'}
+- 社交倾向: ${t.social_tendency||'未知'}
+- 当前情绪: ${t.emotion||'未知'}
+
+请完全按照这个画像来说话和回应。规则：
+- 像这个人在微信上聊天一样自然地说话
+- 保持这个人的性格特点、说话风格和情绪状态
+- 回复1-3句话
+- 绝对不要承认自己是AI或分身
+- 不要使用*星号动作描写*，用颜文字或自然文字表达情绪
+- 如果对方问你个人信息，根据画像合理回答`;
+}
+
+function startCloneChat(){
+  // Save friend's guess
+  cloneState.friendGuess={
+    gender:document.getElementById('f_gender').value,
+    age_range:document.getElementById('f_age').value,
+    mbti:(document.getElementById('f_mbti').value||'').toUpperCase().trim(),
+    occupation:document.getElementById('f_occupation').value.trim(),
+    EI:+document.getElementById('f_EI').value,
+    TF:+document.getElementById('f_TF').value,
+    description:document.getElementById('f_description').value.trim()
+  };
+  cloneState.messages=[];cloneState.msgCount=0;
+  const t=state.inferredTraits;
+  document.getElementById('cloneName').textContent='AI分身';
+  document.getElementById('cloneSubtitle').textContent='基于用户画像生成';
+  document.getElementById('cloneMessages').innerHTML='<div class="msg-counter" id="cloneMsgCounter">对话进度: 0/20</div>';
+  document.getElementById('cloneProgressFill').style.width='0%';
+  document.getElementById('cloneProgressLabel').textContent='0/20';
+  showScreen('cloneChatScreen');
+  document.getElementById('cloneChatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendCloneMessage()}});
+  setTimeout(()=>{const greets=['嗨，你好~','你好呀','Hi，在的'][Math.floor(Math.random()*3)];addCloneMsg(greets,'them')},800);
+}
+
+function addCloneMsg(text,sender){
+  const d=document.createElement('div');d.className=`msg ${sender}`;d.textContent=text;
+  const c=document.getElementById('cloneMessages');c.appendChild(d);c.scrollTop=c.scrollHeight;
+  cloneState.messages.push({role:sender==='me'?'user':'assistant',content:text});
+  if(sender==='me'){cloneState.msgCount++;const p=Math.min((cloneState.msgCount/20)*100,100);document.getElementById('cloneProgressFill').style.width=p+'%';document.getElementById('cloneProgressLabel').textContent=`${cloneState.msgCount}/20`;document.getElementById('cloneMsgCounter').textContent=`对话进度: ${cloneState.msgCount}/20`;if(cloneState.msgCount>=20)setTimeout(()=>endCloneChat(),1000)}
+}
+
+async function sendCloneMessage(){
+  const i=document.getElementById('cloneChatInput');const t=i.value.trim();if(!t)return;i.value='';addCloneMsg(t,'me');
+  if(cloneState.msgCount>=20)return;
+  document.getElementById('cloneTyping').style.display='block';
+  let reply;
+  if(!state.demoMode&&state.apiKey){
+    try{
+      const msgs=cloneState.messages.slice(-12).map(m=>({role:m.role,content:m.content}));
+      const sys=cloneState.clonePersonality;
+      let text=null;
+      if(state.apiProvider==='anthropic'){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:sys,messages:msgs})});if(!r.ok)throw new Error(r.status);const d=await r.json();text=d.content?.[0]?.text}
+      else if(state.apiProvider==='openrouter'){const m=state.modelName||'anthropic/claude-sonnet-4';const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:m,max_tokens:300,messages:[{role:'system',content:sys},...msgs]})});if(!r.ok)throw new Error(r.status);const d=await r.json();text=d.choices?.[0]?.message?.content}
+      else{const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:300,messages:[{role:'system',content:sys},...msgs]})});if(!r.ok)throw new Error(r.status);const d=await r.json();text=d.choices?.[0]?.message?.content}
+      if(text&&text.trim())reply=sanitizeReply(text);else throw new Error('empty');
+    }catch(e){console.error('Clone API:',e);reply=cloneDemoReply(t)}
+  }else{reply=cloneDemoReply(t)}
+  document.getElementById('cloneTyping').style.display='none';addCloneMsg(reply,'them');
+}
+
+function cloneDemoReply(u){
+  const t=state.inferredTraits;const bf=t.bigFive||{};
+  // Adjust reply style based on inferred traits
+  const isExtrovert=(bf.E||.5)>.55;const isFormal=(bf.C||.5)>.6;const isEmotional=(bf.N||.5)>.5;
+  const casual=['嗯嗯是的~','哈哈对','你说得有道理','emmm我觉得也是','确实诶','对对对','嗯这个我也想过','你呢？你觉得呢？','还行吧','有意思'];
+  const formal=['嗯，这个角度我认同。','你说得很有道理，不过也可以换个角度看。','这个问题挺复杂的。','我一般会先想想再做判断。','是的，最近也在思考这个。'];
+  const emotional=['哈哈哈太对了！','诶我也是这么觉得的！','天哪你跟我想的一模一样','真的假的！','啊好开心~'];
+  const pool=isEmotional?emotional:(isFormal?formal:casual);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function endCloneChat(){
+  // Show comparison
+  const t=state.inferredTraits;const f=cloneState.friendGuess;
+  let score=0;let total=0;
+  // Compare gender
+  if(f.gender&&t.gender){total++;if(f.gender===t.gender)score++}
+  // Compare MBTI
+  if(f.mbti&&t.mbti&&f.mbti.length===4&&t.mbti.length===4){for(let i=0;i<4;i++){total++;if(f.mbti[i]===t.mbti[i])score++}}
+  // Compare E/I slider vs bigFive.E
+  total++;const sysE=(t.bigFive?.E||.5)*100;const friendE=100-f.EI;if(Math.abs(sysE-friendE)<25)score++;
+  // Compare T/F slider vs bigFive.A
+  total++;const sysA=(t.bigFive?.A||.5)*100;if(Math.abs(sysA-f.TF)<25)score++;
+  const pct=total>0?Math.round((score/total)*100):50;
+  const matchClass=pct>=70?'high':(pct>=40?'mid':'low');
+  const matchText=pct>=70?'高度匹配！你很了解TA':(pct>=40?'部分匹配，有些特征你猜对了':'差异较大，也许TA有你不知道的一面');
+
+  document.getElementById('matchBadge').innerHTML=`<div class="match-badge ${matchClass}">${pct}% 匹配度 — ${matchText}</div>`;
+  const bf=t.bigFive||{};
+  document.getElementById('compareGrid').innerHTML=`
+    <div class="compare-card system"><h3>🤖 系统推断</h3>
+      <div class="trait-row"><span class="trait-label">性别</span><span class="trait-value">${t.gender||'?'}</span></div>
+      <div class="trait-row"><span class="trait-label">年龄</span><span class="trait-value">${t.age_range||'?'}</span></div>
+      <div class="trait-row"><span class="trait-label">职业</span><span class="trait-value">${t.occupation_guess||'?'}</span></div>
+      <div class="trait-row"><span class="trait-label">MBTI</span><span class="trait-value">${t.mbti||'?'}</span></div>
+      <div class="trait-row"><span class="trait-label">外向性</span><span class="trait-value">${Math.round((bf.E||.5)*100)}%</span></div>
+      <div class="trait-row"><span class="trait-label">宜人性</span><span class="trait-value">${Math.round((bf.A||.5)*100)}%</span></div>
+      <div class="trait-row"><span class="trait-label">沟通风格</span><span class="trait-value">${t.communication_style||'?'}</span></div>
+    </div>
+    <div class="compare-card friend"><h3>👤 你的预判</h3>
+      <div class="trait-row"><span class="trait-label">性别</span><span class="trait-value">${f.gender} ${f.gender===t.gender?'✅':'❌'}</span></div>
+      <div class="trait-row"><span class="trait-label">年龄</span><span class="trait-value">${f.age_range}</span></div>
+      <div class="trait-row"><span class="trait-label">职业</span><span class="trait-value">${f.occupation||'未填'}</span></div>
+      <div class="trait-row"><span class="trait-label">MBTI</span><span class="trait-value">${f.mbti||'未填'} ${f.mbti===t.mbti?'✅':''}</span></div>
+      <div class="trait-row"><span class="trait-label">外向程度</span><span class="trait-value">${100-f.EI}%</span></div>
+      <div class="trait-row"><span class="trait-label">感性程度</span><span class="trait-value">${f.TF}%</span></div>
+      <div class="trait-row"><span class="trait-label">你的描述</span><span class="trait-value" style="font-size:10px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.description||'无'}</span></div>
+    </div>`;
+  showScreen('compareScreen');
 }
 </script>
 </body></html>
